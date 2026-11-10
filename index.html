@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- CARD_ID: CARD-001 -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart NFC Digital Card Studio</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .card-shadow {
+            box-shadow: 0 20px 40px -15px rgba(30, 27, 75, 0.15);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-b from-purple-300 via-indigo-100 to-purple-300 text-slate-800 font-sans min-h-screen flex flex-col items-center justify-center p-0 m-0 antialiased selection:bg-purple-500 selection:text-white">
+
+    <!-- Card Wrapper tuned to fit viewport (h-screen/max-h-screen) for zero scroll on main card body -->
+    <div id="cardContentWrapper" class="w-full max-w-md h-screen max-h-screen flex flex-col justify-between pt-4 pb-2 px-6 relative bg-gradient-to-b from-purple-200 via-indigo-50 to-purple-200 card-shadow overflow-y-auto">
+        
+        <!-- Profile Header & Logo -->
+        <div class="text-center mt-1 relative flex flex-col items-center shrink-0">
+            <div id="profileLogoContainer" class="w-28 h-28 mx-auto rounded-full bg-[#1e1b4b] flex items-center justify-center text-white shadow-2xl mb-2 border-4 border-white/70 overflow-hidden aspect-square">
+            </div>
+            <h1 id="displayTitle" class="font-extrabold text-2xl text-[#1e1b4b] tracking-tight"></h1>
+            <p id="displaySubtitle" class="text-xs font-bold text-slate-700 mt-0.5"></p>
+        </div>
+
+        <!-- Links List Section -->
+        <div id="linksRenderList" class="w-full grid grid-cols-4 gap-3 my-2 px-1 justify-items-center"></div>
+
+        <!-- Thank You Banner & Footer Container (Fixed together at bottom of main screen) -->
+        <div class="w-full flex flex-col shrink-0 gap-2 mt-auto pb-6">
+            <div class="w-full py-2.5 text-center bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-[2rem] shadow-lg px-4">
+                <p id="displayFooterMsg" class="text-xs font-bold tracking-wide flex items-center justify-center gap-1.5">
+                    <span>Thank you for visiting!</span>
+                    <i class="fa-solid fa-heart text-rose-300 text-xs"></i>
+                </p>
+            </div>
+
+            <!-- Bottom Copyright / Provider Bar -->
+            <div class="w-full flex items-center justify-between pt-1 border-t border-purple-300/60 text-xs font-semibold px-1">
+                <div class="flex items-center text-slate-700 text-xs">
+                    <span id="displayFooterText" class="text-slate-800 text-xs font-semibold">Provided by Smart Cards</span>
+                </div>
+                <a id="displayContactLink" href="#" target="_blank" class="text-blue-600 hover:text-blue-800 font-bold text-xs transition-colors cursor-pointer">
+                    <span id="displayConnectText">Connect</span>
+                </a>
+            </div>
+
+            <!-- System Version Code (Positioned below footer, visible only when scrolled up slightly) -->
+            <div class="w-full text-center pt-2 pb-2">
+                <span id="displayVersionTag" class="text-[10px] font-mono text-slate-400/80 tracking-widest inline-block select-none"></span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 404 Not Found Minimalist Screen -->
+    <div id="notFoundScreen" class="fixed inset-0 bg-black text-[#888888] z-50 hidden flex flex-col items-center justify-center p-6 text-center font-sans select-none">
+        <h1 id="displayNotFoundTitle" class="text-6xl font-medium text-[#666666] m-0 tracking-tight">404</h1>
+        <h2 id="displayNotFoundSubtitle" class="text-2xl font-normal my-2.5 text-[#aaaaaa]">Not Found</h2>
+        <p id="displayNotFoundMessage" class="text-sm text-[#666666] m-0 max-w-md">The resource requested could not be found on this server!</p>
+    </div>
+
+    <script>
+        const cardData = {
+            cardId: "001",
+            versionCode: "SYS-VER: 01-2026-CARD001", 
+            title: "VKS Studio",
+            subtitle: "Follow • Connect • Explore",
+            logoUrl: "", 
+            footerText: "Provided by Smart Cards",
+            connectText: "Connect",
+            connectUrl: "https://instagram.com",
+
+            // 404 Screen Editable Text Settings
+            notFoundTitle: "404",
+            notFoundSubtitle: "Not Found",
+            notFoundMessage: "The resource requested could not be found on this server!",
+
+            // Access Control Rules (Yes/No - true/false)
+            allowQRScan: true,     
+            allowDirectLink: true,
+
+            session: {
+                expiryMinutes: 1
+            },
+
+            links: [
+                { 
+                    id: 1, 
+                    type: "instagram", 
+                    title: "Instagram", 
+                    value: "https://instagram.com", 
+                    iconClass: "fa-brands fa-instagram", 
+                    customImg: "", 
+                    bgClass: "bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white" 
+                },
+                { 
+                    id: 2, 
+                    type: "whatsapp", 
+                    title: "WhatsApp", 
+                    value: "+919876543210", 
+                    iconClass: "fa-brands fa-whatsapp", 
+                    customImg: "", 
+                    bgClass: "bg-emerald-500 text-white" 
+                },
+                { 
+                    id: 3, 
+                    type: "facebook", 
+                    title: "Facebook", 
+                    value: "https://facebook.com", 
+                    iconClass: "fa-brands fa-facebook-f", 
+                    customImg: "", 
+                    bgClass: "bg-blue-600 text-white" 
+                },
+                { 
+                    id: 4, 
+                    type: "google", 
+                    title: "Google", 
+                    value: "https://google.com", 
+                    iconClass: "fa-brands fa-google", 
+                    customImg: "", 
+                    bgClass: "bg-white text-rose-500 border border-slate-200" 
+                }
+            ]
+        };
+
+        const SESSION_START_KEY = "nfc_card_persistent_session_start";
+
+        function checkSessionExpiry() {
+            const expiryMins = parseFloat(cardData.session.expiryMinutes || 0);
+            const wrapperEl = document.getElementById('cardContentWrapper');
+            const notFoundEl = document.getElementById('notFoundScreen');
+            
+            if (!wrapperEl || !notFoundEl) return;
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const isQRScan = urlParams.has('scan') || urlParams.has('t');
+
+            // 1. Access Control Logic (QR & Direct Link)
+            let isAccessAllowed = false;
+
+            if (isQRScan && cardData.allowQRScan) {
+                isAccessAllowed = true;
+            } else if (!isQRScan && cardData.allowDirectLink) {
+                isAccessAllowed = true;
+            }
+
+            if (!isAccessAllowed) {
+                wrapperEl.classList.add('hidden');
+                notFoundEl.classList.remove('hidden');
+                return;
+            }
+
+            // QR 
+            if (isQRScan) {
+                localStorage.setItem(SESSION_START_KEY, Date.now().toString());
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+
+            // 2. Expiry Check Logic
+            if (expiryMins <= 0) {
+                wrapperEl.classList.remove('hidden');
+                notFoundEl.classList.add('hidden');
+                return;
+            }
+
+            let sessionStart = localStorage.getItem(SESSION_START_KEY);
+            
+            if (!sessionStart) {
+                sessionStart = Date.now().toString();
+                localStorage.setItem(SESSION_START_KEY, sessionStart);
+            }
+
+            const elapsedMinutes = (Date.now() - parseInt(sessionStart, 10)) / (1000 * 60);
+
+            if (elapsedMinutes >= expiryMins) {
+                wrapperEl.classList.add('hidden');
+                notFoundEl.classList.remove('hidden');
+            } else {
+                wrapperEl.classList.remove('hidden');
+                notFoundEl.classList.add('hidden');
+            }
+        }
+
+        function renderCard() {
+            // Update 404 Text Content
+            document.getElementById('displayNotFoundTitle').innerText = cardData.notFoundTitle || "404";
+            document.getElementById('displayNotFoundSubtitle').innerText = cardData.notFoundSubtitle || "Not Found";
+            document.getElementById('displayNotFoundMessage').innerText = cardData.notFoundMessage || "The resource requested could not be found on this server!";
+
+            checkSessionExpiry();
+            document.getElementById('displayTitle').innerText = cardData.title || "";
+            document.getElementById('displaySubtitle').innerText = cardData.subtitle || "";
+            document.getElementById('displayFooterText').innerText = cardData.footerText || "";
+            document.getElementById('displayConnectText').innerText = cardData.connectText || "";
+            document.getElementById('displayContactLink').href = cardData.connectUrl || "#";
+            document.getElementById('displayVersionTag').innerText = cardData.versionCode || `SYS-VER: 01-2026-CARD${cardData.cardId}`;
+
+            const logoContainer = document.getElementById('profileLogoContainer');
+            if (logoContainer) {
+                if (cardData.logoUrl && cardData.logoUrl.trim() !== "") {
+                    logoContainer.innerHTML = `<img src="${cardData.logoUrl}" class="w-full h-full object-cover rounded-full aspect-square">`;
+                } else {
+                    logoContainer.innerHTML = `
+                    <svg viewBox="0 0 100 100" class="w-16 h-16 fill-none stroke-white stroke-[2.5] stroke-linecap-round stroke-linejoin-round">
+                        <path d="M50,22 C40,40 42,65 50,70 C58,65 60,40 50,22 Z" />
+                        <path d="M50,70 C30,65 20,45 28,30 C38,40 45,55 50,70 Z" />
+                        <path d="M50,70 C70,65 80,45 72,30 C62,40 55,55 50,70 Z" />
+                    </svg>`;
+                }
+            }
+
+            const container = document.getElementById('linksRenderList');
+            if (!container) return;
+            container.innerHTML = "";
+
+            if (cardData.links && Array.isArray(cardData.links)) {
+                cardData.links.forEach(link => {
+                    let hrefAttr = "#";
+
+                    if (link.type === 'whatsapp') {
+                        const cleanNum = link.value ? link.value.replace(/[^0-9]/g, '') : '';
+                        hrefAttr = `https://wa.me/${cleanNum}`;
+                    } else {
+                        hrefAttr = link.value && link.value.startsWith('http') ? link.value : `https://${link.value || ''}`;
+                    }
+
+                    let iconContent = link.customImg && link.customImg.trim() !== "" 
+                        ? `<img src="${link.customImg}" class="w-full h-full object-cover aspect-square rounded-full">`
+                        : `<i class="${link.iconClass || 'fa-solid fa-globe'} text-2xl"></i>`;
+
+                    container.innerHTML += `
+                    <a href="${hrefAttr}" target="_blank" class="flex flex-col items-center group transition-transform hover:scale-110 active:scale-95">
+                        <div class="w-14 h-14 rounded-full ${link.bgClass || 'bg-purple-600 text-white'} flex items-center justify-center shadow-lg overflow-hidden border-2 border-white/80">
+                            ${iconContent}
+                        </div>
+                        <span class="text-xs font-semibold text-slate-800 mt-1.5 text-center tracking-tight truncate w-full">${link.title}</span>
+                    </a>`;
+                });
+            }
+        }
+
+        window.onload = function() {
+            renderCard();
+            // నిరంతరం సమయాన్ని తనిఖీ చేసి, గడువు ముగియగానే స్క్రీన్ మారేలా చేస్తుంది
+            if (parseFloat(cardData.session.expiryMinutes || 0) > 0) {
+                setInterval(checkSessionExpiry, 3000); // ప్రతి 3 సెకన్లకు చెక్ చేస్తుంది
+            }
+        };
+    </script>
+</body>
+</html>
