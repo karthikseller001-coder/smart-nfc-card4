@@ -107,6 +107,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      text-decoration: none;
     }
 
     .logo-circle img {
@@ -202,102 +203,66 @@
       letter-spacing: 0.4px;
     }
 
-    /* Session Expired Overlay & Timer Pill */
-    .session-timer-badge {
-      position: absolute;
-      top: 14px;
-      left: 16px;
-      z-index: 10;
-      background: rgba(7, 34, 71, 0.9);
-      color: #f6d365;
-      border: 1.5px solid var(--gold-mid);
-      padding: 4px 11px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-      display: none;
-      align-items: center;
-      gap: 5px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
-    }
-
+    /* Session Expired Lock Screen */
     .session-expired-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      background: radial-gradient(circle at 50% 45%, #0b2d5c 0%, #051833 100%);
       display: none;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       text-align: center;
-      padding: 28px;
-      color: #ffffff;
-    }
-
-    .expired-card {
-      max-width: 340px;
       width: 100%;
-      background: rgba(255, 255, 255, 0.06);
-      border: 1.5px solid rgba(229, 179, 67, 0.5);
-      border-radius: 24px;
+      max-width: 430px;
+      min-height: 100vh;
+      background: radial-gradient(circle at 50% 45%, #ffffff 40%, #f5f2eb 100%);
       padding: 32px 24px;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
     }
 
-    .expired-icon {
-      width: 68px;
-      height: 68px;
+    .lock-badge {
+      width: 84px;
+      height: 84px;
       border-radius: 50%;
-      background: rgba(229, 179, 67, 0.15);
-      border: 2px solid var(--gold-mid);
+      background: var(--navy);
+      border: 3px solid var(--gold-mid);
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 0 auto 18px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 25px rgba(7, 34, 71, 0.2);
     }
 
     .expired-title {
       font-family: 'Montserrat', sans-serif;
-      font-size: 20px;
-      font-weight: 700;
-      color: #f6d365;
+      font-weight: 800;
+      font-size: 22px;
+      color: var(--navy);
       margin-bottom: 10px;
     }
 
     .expired-desc {
-      font-size: 13.5px;
-      line-height: 1.5;
-      color: #e2e8f0;
-      opacity: 0.9;
+      font-size: 14px;
+      color: #4a5568;
+      line-height: 1.6;
+      max-width: 300px;
     }
   </style>
 </head>
 <body>
 
-  <!-- Session Expired Lock Screen -->
+  <!-- Locked / Session Expired Screen -->
   <div class="session-expired-overlay" id="expiredOverlay">
-    <div class="expired-card">
-      <div class="expired-icon">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#f6d365" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-        </svg>
-      </div>
-      <div class="expired-title">Session Expired</div>
-      <p class="expired-desc">Your session time has ended or access is restricted.<br><br>Please scan the <strong>QR Code</strong> again to continue.</p>
+    <div class="lock-badge">
+      <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#e5b343" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+      </svg>
     </div>
+    <h2 class="expired-title">Session Expired</h2>
+    <p class="expired-desc">Please scan the official QR code again to access this business portal.</p>
   </div>
 
+  <!-- Main Business Portal Screen -->
   <div class="app-container" id="mainAppContainer">
-    <!-- Optional Live Session Countdown Badge -->
-    <div class="session-timer-badge" id="sessionTimerBadge">
-      <span>⏱</span>
-      <span id="timerText">00:00</span>
-    </div>
-
     <!-- Top Right Decorative Waves -->
     <svg class="wave-top-right" viewBox="0 0 200 200" fill="none">
       <defs>
@@ -318,7 +283,7 @@
       <!-- Circular Logo Frame -->
       <div class="logo-ring-outer">
         <div class="logo-ring-inner">
-          <div class="logo-circle" id="logoContainer">
+          <a class="logo-circle" id="logoContainer" href="javascript:void(0)">
             <!-- Default Universal Royal Emblem -->
             <svg viewBox="0 0 240 240" width="90%" height="90%" xmlns="http://www.w3.org/2000/svg">
               <defs>
@@ -340,7 +305,7 @@
               <path d="M172 144 L176 136 L180 144 L188 148 L180 152 L176 160 L172 152 L164 148 Z" fill="url(#universalGold)"/>
               <path d="M56 186 C95 166, 148 164, 188 174 C148 173, 98 177, 56 186 Z" fill="#072247"/>
             </svg>
-          </div>
+          </a>
         </div>
       </div>
 
@@ -427,7 +392,7 @@
           <svg class="star-icon" viewBox="0 0 36 36"><path fill="url(#sg1)" d="M18 2.5l4.7 9.5 10.5 1.5-7.6 7.4 1.8 10.5L18 26.4l-9.4 5 1.8-10.5-7.6-7.4 10.5-1.5z"/></svg>
         </div>
 
-        <div class="provided-by">Provided by Karthik</div>
+        <div class="provided-by" id="providedByText">Provided by Karthik</div>
       </div>
 
     </div>
@@ -450,105 +415,126 @@
     </svg>
   </div>
 
-  <!-- ================= EASY CONFIGURATION SCRIPT ================= -->
+  <!-- ================= ALL-IN-ONE CONFIGURATION (ఇక్కడ మార్చుకోండి) ================= -->
   <script>
-    // 0. సెషన్ టైమ్ (నిమిషాలలో) ఇక్కడ సెటప్ చేయండి (0 పెడితే Unlimited - టైమ్ లిమిట్ ఉండదు)
-    const SESSION_MINUTES = 5; 
+    const PORTAL_CONFIG = {
+      // 1. సెషన్ టైమ్ (నిమిషాలలో) - QR స్కాన్ (?scan=1) చేసినప్పుడు ఎంతసేపు పనిచేయాలో ఇవ్వండి (0 = Unlimited)
+      SESSION_MINUTES: 5,
 
-    // 1. మీ కస్టమ్ లోగో URL ఇక్కడ పేస్ట్ చేయండి (ఖాళీగా ఉంచితే డిఫాల్ట్ చెఫ్ లోగో కనిపిస్తుంది)
-    const LOGO_URL = ""; 
+      // 2. లోగో చిత్రం URL (ఖాళీగా ఉంచితే డిఫాల్ట్ లోగో కనిపిస్తుంది)
+      LOGO_URL: "",
 
-    // 2. మీ ఫోన్ నంబర్ ఇక్కడ మార్చుకోండి (Contact Us నొక్కితే నేరుగా డైల్ ప్యాడ్‌లోకి వెళ్తుంది)
-    const PHONE_NUMBER = "+919876543210";
+      // 3. లోగో మీద క్లిక్ చేస్తే ఎక్కడికి వెళ్ళాలో ఆ లింక్ (ఖాళీగా ఉంచితే క్లిక్ అవ్వదు)
+      LOGO_CLICK_LINK: "https://yourwebsite.com",
 
-    // 3. మీ Google Reviews లింక్ ఇక్కడ ఇవ్వండి
-    const GOOGLE_REVIEW_LINK = "https://g.page/r/YOUR_GOOGLE_REVIEW_LINK/review";
+      // 4. ఫోన్ నంబర్ (Contact Us నొక్కితే నేరుగా డైల్ ప్యాడ్‌లోకి వెళ్తుంది)
+      PHONE_NUMBER: "+919876543210",
 
-    // 4. మీ Instagram లింక్ ఇక్కడ ఇవ్వండి
-    const INSTAGRAM_LINK = "https://instagram.com/your_username";
+      // 5. Google Reviews లింక్
+      GOOGLE_REVIEW_LINK: "https://g.page/r/YOUR_GOOGLE_REVIEW_LINK/review",
 
-    // 5. మీ WhatsApp నంబర్ (కంట్రీ కోడ్‌తో, + లేకుండా) ఇక్కడ ఇవ్వండి
-    const WHATSAPP_NUMBER = "919876543210";
+      // 6. Instagram లింక్
+      INSTAGRAM_LINK: "https://instagram.com/your_username",
 
-    // 6. మీ వెబ్‌సైట్ లింక్ ఇక్కడ ఇవ్వండి
-    const WEBSITE_LINK = "https://yourwebsite.com";
+      // 7. WhatsApp నంబర్ (కంట్రీ కోడ్‌తో, + లేకుండా)
+      WHATSAPP_NUMBER: "919876543210",
 
-    // Apply Custom Logo if provided
-    if (LOGO_URL && LOGO_URL.trim() !== "") {
-      document.getElementById("logoContainer").innerHTML = `<img src="${LOGO_URL}" alt="Brand Logo">`;
+      // 8. మీ వెబ్‌సైట్ లింక్
+      WEBSITE_LINK: "https://yourwebsite.com",
+
+      // 9. క్రింద కనిపించే పేరు
+      PROVIDED_BY: "Provided by Karthik"
+    };
+
+    // ================= APPLY SETTINGS =================
+    const logoEl = document.getElementById("logoContainer");
+    if (PORTAL_CONFIG.LOGO_URL && PORTAL_CONFIG.LOGO_URL.trim() !== "") {
+      logoEl.innerHTML = `<img src="${PORTAL_CONFIG.LOGO_URL.trim()}" alt="Brand Logo">`;
     }
 
-    // Apply Phone Number to Dialer Button
-    const contactBtn = document.getElementById("contactCallBtn");
-    contactBtn.href = `tel:${PHONE_NUMBER}`;
+    if (PORTAL_CONFIG.LOGO_CLICK_LINK && PORTAL_CONFIG.LOGO_CLICK_LINK.trim() !== "") {
+      logoEl.href = PORTAL_CONFIG.LOGO_CLICK_LINK.trim();
+      logoEl.target = "_blank";
+      logoEl.rel = "noopener noreferrer";
+    } else {
+      logoEl.style.pointerEvents = "none";
+    }
 
-    // Apply Social & Web Links
-    document.getElementById("googleReviewBtn").href = GOOGLE_REVIEW_LINK;
-    document.getElementById("instagramBtn").href = INSTAGRAM_LINK;
-    document.getElementById("whatsappBtn").href = `https://wa.me/${WHATSAPP_NUMBER}`;
-    document.getElementById("websiteBtn").href = WEBSITE_LINK;
+    document.getElementById("contactCallBtn").href = `tel:${PORTAL_CONFIG.PHONE_NUMBER}`;
+    document.getElementById("googleReviewBtn").href = PORTAL_CONFIG.GOOGLE_REVIEW_LINK;
+    document.getElementById("instagramBtn").href = PORTAL_CONFIG.INSTAGRAM_LINK;
+    document.getElementById("whatsappBtn").href = `https://wa.me/${PORTAL_CONFIG.WHATSAPP_NUMBER}`;
+    document.getElementById("websiteBtn").href = PORTAL_CONFIG.WEBSITE_LINK;
+    document.getElementById("providedByText").textContent = PORTAL_CONFIG.PROVIDED_BY;
 
-    // ================= SESSION TIMER LOGIC (?scan=1) =================
-    (function initSessionControl() {
-      const STORAGE_KEY = "bp_session_expiry";
+    // ================= SILENT BACKGROUND SESSION & OWNER CONTROL =================
+    (function initAccessControl() {
+      const EXPIRY_KEY = "bp_session_expiry";
+      const OWNER_KEY = "bp_owner_lifetime_access";
       const urlParams = new URLSearchParams(window.location.search);
+
+      const isOwnerLogin = urlParams.get("mainweblink") === "1";
       const isScanned = urlParams.get("scan") === "1";
 
-      // URL నుండి ?scan=1 ని క్లీన్ చేయడం (లింక్ షేర్ చేసినా మళ్ళీ ఓపెన్ కాకుండా ఉండటానికి)
-      if (isScanned && window.history && window.history.replaceState) {
+      // URL నుండి ?mainweblink=1 లేదా ?scan=1 పారామీటర్లను వెంటనే హైడ్ చేయడం
+      if ((isOwnerLogin || isScanned) && window.history && window.history.replaceState) {
+        urlParams.delete("mainweblink");
         urlParams.delete("scan");
         const cleanQuery = urlParams.toString();
         const cleanUrl = window.location.pathname + (cleanQuery ? "?" + cleanQuery : "") + window.location.hash;
         window.history.replaceState({}, document.title, cleanUrl);
       }
 
-      // SESSION_MINUTES === 0 అయితే Unlimited Access
-      if (!SESSION_MINUTES || SESSION_MINUTES <= 0) {
-        localStorage.removeItem(STORAGE_KEY);
+      // 1. ఓనర్ లాగిన్ (?mainweblink=1) అయితే లైఫ్‌టైమ్ అన్‌లిమిటెడ్ యాక్సెస్ సేవ్ చేయడం
+      if (isOwnerLogin) {
+        localStorage.setItem(OWNER_KEY, "true");
+        localStorage.removeItem(EXPIRY_KEY);
+      }
+
+      // ఓనర్ డివైస్ అయితే ఎప్పటికీ లాక్ అవ్వదు
+      if (localStorage.getItem(OWNER_KEY) === "true") {
         return;
       }
 
-      const now = Date.now();
-      let expiryTime = parseInt(localStorage.getItem(STORAGE_KEY) || "0", 10);
-
-      // కొత్తగా ?scan=1 తో వస్తే కొత్త టైమర్ సెట్ చేయాలి
-      if (isScanned) {
-        expiryTime = now + SESSION_MINUTES * 60 * 1000;
-        localStorage.setItem(STORAGE_KEY, expiryTime.toString());
-      }
-
       function lockPortal() {
-        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(EXPIRY_KEY);
         document.getElementById("mainAppContainer").style.display = "none";
         document.getElementById("expiredOverlay").style.display = "flex";
       }
 
-      // సెషన్ లేకపోయినా లేదా సమయం ముగిసిపోయినా వెంటనే లాక్ చేయాలి
+      const now = Date.now();
+      let expiryTime = parseInt(localStorage.getItem(EXPIRY_KEY) || "0", 10);
+
+      // 2. QR కోడ్ (?scan=1) స్కాన్ చేసినప్పుడు మాత్రమే కొత్త సెషన్ టైమ్ స్టార్ట్ చేయడం
+      if (isScanned) {
+        if (!PORTAL_CONFIG.SESSION_MINUTES || PORTAL_CONFIG.SESSION_MINUTES <= 0) {
+          // 0 పెడితే Unlimited Access
+          localStorage.setItem(EXPIRY_KEY, "UNLIMITED");
+          return;
+        } else {
+          expiryTime = now + PORTAL_CONFIG.SESSION_MINUTES * 60 * 1000;
+          localStorage.setItem(EXPIRY_KEY, expiryTime.toString());
+        }
+      }
+
+      // ఒకవేళ 0 (UNLIMITED) సెషన్ యాక్టివ్‌గా ఉంటే అనుమతించడం
+      if (localStorage.getItem(EXPIRY_KEY) === "UNLIMITED") {
+        return;
+      }
+
+      // 3. నేరుగా మెయిన్ లింక్ ఓపెన్ చేసినా లేదా సమయం ముగిసిపోయినా వెంటనే లాక్ చేయడం
       if (!expiryTime || now >= expiryTime) {
         lockPortal();
         return;
       }
 
-      // లైవ్ కౌంట్‌డౌన్ టైమర్ చూపించడం & సమయం అవ్వగానే లాక్ చేయడం
-      const badge = document.getElementById("sessionTimerBadge");
-      const timerText = document.getElementById("timerText");
-      badge.style.display = "flex";
-
-      function updateCountdown() {
-        const remaining = expiryTime - Date.now();
-        if (remaining <= 0) {
-          clearInterval(timerInterval);
+      // 4. బ్యాక్‌గ్రౌండ్‌లో సైలెంట్‌గా టైమ్ చెక్ చేస్తూ సమయం ముగియగానే లాక్ చేయడం
+      const bgTimer = setInterval(() => {
+        if (Date.now() >= expiryTime) {
+          clearInterval(bgTimer);
           lockPortal();
-          return;
         }
-        const totalSeconds = Math.ceil(remaining / 1000);
-        const mins = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
-        const secs = String(totalSeconds % 60).padStart(2, "0");
-        timerText.textContent = `${mins}:${secs}`;
-      }
-
-      updateCountdown();
-      const timerInterval = setInterval(updateCountdown, 1000);
+      }, 1000);
     })();
   </script>
 
