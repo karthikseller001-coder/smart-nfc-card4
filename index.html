@@ -201,11 +201,103 @@
       margin-top: 8px;
       letter-spacing: 0.4px;
     }
+
+    /* Session Expired Overlay & Timer Pill */
+    .session-timer-badge {
+      position: absolute;
+      top: 14px;
+      left: 16px;
+      z-index: 10;
+      background: rgba(7, 34, 71, 0.9);
+      color: #f6d365;
+      border: 1.5px solid var(--gold-mid);
+      padding: 4px 11px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      display: none;
+      align-items: center;
+      gap: 5px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+    }
+
+    .session-expired-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: radial-gradient(circle at 50% 45%, #0b2d5c 0%, #051833 100%);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 28px;
+      color: #ffffff;
+    }
+
+    .expired-card {
+      max-width: 340px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1.5px solid rgba(229, 179, 67, 0.5);
+      border-radius: 24px;
+      padding: 32px 24px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    .expired-icon {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      background: rgba(229, 179, 67, 0.15);
+      border: 2px solid var(--gold-mid);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 18px;
+    }
+
+    .expired-title {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: #f6d365;
+      margin-bottom: 10px;
+    }
+
+    .expired-desc {
+      font-size: 13.5px;
+      line-height: 1.5;
+      color: #e2e8f0;
+      opacity: 0.9;
+    }
   </style>
 </head>
 <body>
 
-  <div class="app-container">
+  <!-- Session Expired Lock Screen -->
+  <div class="session-expired-overlay" id="expiredOverlay">
+    <div class="expired-card">
+      <div class="expired-icon">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#f6d365" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+      </div>
+      <div class="expired-title">Session Expired</div>
+      <p class="expired-desc">Your session time has ended or access is restricted.<br><br>Please scan the <strong>QR Code</strong> again to continue.</p>
+    </div>
+  </div>
+
+  <div class="app-container" id="mainAppContainer">
+    <!-- Optional Live Session Countdown Badge -->
+    <div class="session-timer-badge" id="sessionTimerBadge">
+      <span>⏱</span>
+      <span id="timerText">00:00</span>
+    </div>
+
     <!-- Top Right Decorative Waves -->
     <svg class="wave-top-right" viewBox="0 0 200 200" fill="none">
       <defs>
@@ -360,6 +452,9 @@
 
   <!-- ================= EASY CONFIGURATION SCRIPT ================= -->
   <script>
+    // 0. సెషన్ టైమ్ (నిమిషాలలో) ఇక్కడ సెటప్ చేయండి (0 పెడితే Unlimited - టైమ్ లిమిట్ ఉండదు)
+    const SESSION_MINUTES = 5; 
+
     // 1. మీ కస్టమ్ లోగో URL ఇక్కడ పేస్ట్ చేయండి (ఖాళీగా ఉంచితే డిఫాల్ట్ చెఫ్ లోగో కనిపిస్తుంది)
     const LOGO_URL = ""; 
 
@@ -392,6 +487,69 @@
     document.getElementById("instagramBtn").href = INSTAGRAM_LINK;
     document.getElementById("whatsappBtn").href = `https://wa.me/${WHATSAPP_NUMBER}`;
     document.getElementById("websiteBtn").href = WEBSITE_LINK;
+
+    // ================= SESSION TIMER LOGIC (?scan=1) =================
+    (function initSessionControl() {
+      const STORAGE_KEY = "bp_session_expiry";
+      const urlParams = new URLSearchParams(window.location.search);
+      const isScanned = urlParams.get("scan") === "1";
+
+      // URL నుండి ?scan=1 ని క్లీన్ చేయడం (లింక్ షేర్ చేసినా మళ్ళీ ఓపెన్ కాకుండా ఉండటానికి)
+      if (isScanned && window.history && window.history.replaceState) {
+        urlParams.delete("scan");
+        const cleanQuery = urlParams.toString();
+        const cleanUrl = window.location.pathname + (cleanQuery ? "?" + cleanQuery : "") + window.location.hash;
+        window.history.replaceState({}, document.title, cleanUrl);
+      }
+
+      // SESSION_MINUTES === 0 అయితే Unlimited Access
+      if (!SESSION_MINUTES || SESSION_MINUTES <= 0) {
+        localStorage.removeItem(STORAGE_KEY);
+        return;
+      }
+
+      const now = Date.now();
+      let expiryTime = parseInt(localStorage.getItem(STORAGE_KEY) || "0", 10);
+
+      // కొత్తగా ?scan=1 తో వస్తే కొత్త టైమర్ సెట్ చేయాలి
+      if (isScanned) {
+        expiryTime = now + SESSION_MINUTES * 60 * 1000;
+        localStorage.setItem(STORAGE_KEY, expiryTime.toString());
+      }
+
+      function lockPortal() {
+        localStorage.removeItem(STORAGE_KEY);
+        document.getElementById("mainAppContainer").style.display = "none";
+        document.getElementById("expiredOverlay").style.display = "flex";
+      }
+
+      // సెషన్ లేకపోయినా లేదా సమయం ముగిసిపోయినా వెంటనే లాక్ చేయాలి
+      if (!expiryTime || now >= expiryTime) {
+        lockPortal();
+        return;
+      }
+
+      // లైవ్ కౌంట్‌డౌన్ టైమర్ చూపించడం & సమయం అవ్వగానే లాక్ చేయడం
+      const badge = document.getElementById("sessionTimerBadge");
+      const timerText = document.getElementById("timerText");
+      badge.style.display = "flex";
+
+      function updateCountdown() {
+        const remaining = expiryTime - Date.now();
+        if (remaining <= 0) {
+          clearInterval(timerInterval);
+          lockPortal();
+          return;
+        }
+        const totalSeconds = Math.ceil(remaining / 1000);
+        const mins = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
+        const secs = String(totalSeconds % 60).padStart(2, "0");
+        timerText.textContent = `${mins}:${secs}`;
+      }
+
+      updateCountdown();
+      const timerInterval = setInterval(updateCountdown, 1000);
+    })();
   </script>
 
 </body>
