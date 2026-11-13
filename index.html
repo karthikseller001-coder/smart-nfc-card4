@@ -470,59 +470,51 @@
     // ================= SILENT BACKGROUND SESSION & OWNER CONTROL =================
     (function initAccessControl() {
       const EXPIRY_KEY = "bp_session_expiry";
-      const OWNER_KEY = "bp_owner_lifetime_access";
       const urlParams = new URLSearchParams(window.location.search);
 
-      const isOwnerLogin = urlParams.get("mainweblink") === "1";
+      const isMainWebLink = urlParams.get("main_web_link") === "1";
       const isScanned = urlParams.get("scan") === "1";
 
-      // URL నుండి ?mainweblink=1 లేదా ?scan=1 పారామీటర్లను వెంటనే హైడ్ చేయడం
-      if ((isOwnerLogin || isScanned) && window.history && window.history.replaceState) {
-        urlParams.delete("mainweblink");
+      // URL నుండి ?main_web_link=1 లేదా ?scan=1 పారామీటర్లను వెంటనే హైడ్ చేయడం
+      if ((isMainWebLink || isScanned) && window.history && window.history.replaceState) {
+        urlParams.delete("main_web_link");
         urlParams.delete("scan");
         const cleanQuery = urlParams.toString();
         const cleanUrl = window.location.pathname + (cleanQuery ? "?" + cleanQuery : "") + window.location.hash;
         window.history.replaceState({}, document.title, cleanUrl);
       }
 
-      // 1. ఓనర్ లాగిన్ (?mainweblink=1) అయితే లైఫ్‌టైమ్ అన్‌లిమిటెడ్ యాక్సెస్ సేవ్ చేయడం
-      if (isOwnerLogin) {
-        localStorage.setItem(OWNER_KEY, "true");
-        localStorage.removeItem(EXPIRY_KEY);
-      }
-
-      // ఓనర్ డివైస్ అయితే ఎప్పటికీ లాక్ అవ్వదు
-      if (localStorage.getItem(OWNER_KEY) === "true") {
+      // 1. ?main_web_link=1 నొక్కినప్పుడు మాత్రమే ఎటువంటి టైమర్ లేకుండా అన్‌లిమిటెడ్‌గా ఓపెన్ అవుతుంది
+      if (isMainWebLink) {
+        sessionStorage.removeItem(EXPIRY_KEY);
         return;
       }
 
       function lockPortal() {
-        localStorage.removeItem(EXPIRY_KEY);
+        sessionStorage.removeItem(EXPIRY_KEY);
         document.getElementById("mainAppContainer").style.display = "none";
         document.getElementById("expiredOverlay").style.display = "flex";
       }
 
       const now = Date.now();
-      let expiryTime = parseInt(localStorage.getItem(EXPIRY_KEY) || "0", 10);
+      let expiryTime = parseInt(sessionStorage.getItem(EXPIRY_KEY) || "0", 10);
 
-      // 2. QR కోడ్ (?scan=1) స్కాన్ చేసినప్పుడు మాత్రమే కొత్త సెషన్ టైమ్ స్టార్ట్ చేయడం
+      // 2. ?scan=1 నొక్కిన ప్రతిసారీ కొత్తగా సెషన్ టైమ్ స్టార్ట్ అవుతుంది
       if (isScanned) {
         if (!PORTAL_CONFIG.SESSION_MINUTES || PORTAL_CONFIG.SESSION_MINUTES <= 0) {
-          // 0 పెడితే Unlimited Access
-          localStorage.setItem(EXPIRY_KEY, "UNLIMITED");
+          sessionStorage.setItem(EXPIRY_KEY, "UNLIMITED");
           return;
         } else {
           expiryTime = now + PORTAL_CONFIG.SESSION_MINUTES * 60 * 1000;
-          localStorage.setItem(EXPIRY_KEY, expiryTime.toString());
+          sessionStorage.setItem(EXPIRY_KEY, expiryTime.toString());
         }
       }
 
-      // ఒకవేళ 0 (UNLIMITED) సెషన్ యాక్టివ్‌గా ఉంటే అనుమతించడం
-      if (localStorage.getItem(EXPIRY_KEY) === "UNLIMITED") {
+      if (sessionStorage.getItem(EXPIRY_KEY) === "UNLIMITED") {
         return;
       }
 
-      // 3. నేరుగా మెయిన్ లింక్ ఓపెన్ చేసినా లేదా సమయం ముగిసిపోయినా వెంటనే లాక్ చేయడం
+      // 3. మామూలు లింక్ నొక్కినా లేదా టైమ్ అయిపోయినా వెంటనే లాక్ అవుతుంది
       if (!expiryTime || now >= expiryTime) {
         lockPortal();
         return;
