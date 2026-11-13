@@ -469,52 +469,92 @@
 
     // ================= SILENT BACKGROUND SESSION & OWNER CONTROL =================
     (function initAccessControl() {
-      const EXPIRY_KEY = "bp_session_expiry";
-      const urlParams = new URLSearchParams(window.location.search);
+      const EXPIRY_KEY = "bp_session_expiry_v2";
+      const OWNER_KEY = "bp_owner_unlimited_v2";
 
-      const isMainWebLink = urlParams.get("main_web_link") === "1";
-      const isScanned = urlParams.get("scan") === "1";
-
-      // URL నుండి ?main_web_link=1 లేదా ?scan=1 పారామీటర్లను వెంటనే హైడ్ చేయడం
-      if ((isMainWebLink || isScanned) && window.history && window.history.replaceState) {
-        urlParams.delete("main_web_link");
-        urlParams.delete("scan");
-        const cleanQuery = urlParams.toString();
-        const cleanUrl = window.location.pathname + (cleanQuery ? "?" + cleanQuery : "") + window.location.hash;
-        window.history.replaceState({}, document.title, cleanUrl);
+      // Safe Storage Helpers (In-memory fallback if browser blocks storage)
+      let memStorage = {};
+      function setStore(type, key, val) {
+        try {
+          window[type].setItem(key, val);
+        } catch (e) {
+          memStorage[type + "_" + key] = val;
+        }
+      }
+      function getStore(type, key) {
+        try {
+          return window[type].getItem(key);
+        } catch (e) {
+          return memStorage[type + "_" + key] || null;
+        }
+      }
+      function removeStore(type, key) {
+        try {
+          window[type].removeItem(key);
+        } catch (e) {
+          delete memStorage[type + "_" + key];
+        }
       }
 
-      // 1. ?main_web_link=1 నొక్కినప్పుడు మాత్రమే ఎటువంటి టైమర్ లేకుండా అన్‌లిమిటెడ్‌గా ఓపెన్ అవుతుంది
-      if (isMainWebLink) {
-        sessionStorage.removeItem(EXPIRY_KEY);
-        return;
-      }
+      const rawSearch = window.location.search || "";
+      const urlParams = new URLSearchParams(rawSearch);
+
+      // Check for ?main=1 (case-insensitive check)
+      const isMainAccess = urlParams.get("main") === "1" || /(?:^\?|&)main=1(?:&|$)/i.test(rawSearch);
+      // Check for ?scan=1
+      const isScanned = urlParams.get("scan") === "1" || /(?:^\?|&)scan=1(?:&|$)/i.test(rawSearch);
 
       function lockPortal() {
-        sessionStorage.removeItem(EXPIRY_KEY);
+        removeStore("sessionStorage", EXPIRY_KEY);
         document.getElementById("mainAppContainer").style.display = "none";
         document.getElementById("expiredOverlay").style.display = "flex";
       }
 
-      const now = Date.now();
-      let expiryTime = parseInt(sessionStorage.getItem(EXPIRY_KEY) || "0", 10);
+      // 1. ?main=1 నొక్కినప్పుడు ఎన్ని రోజులైనా లైఫ్‌టైమ్ లాగిన్‌లో ఉంటుంది (ఎప్పటికీ ఎక్స్‌పైర్ అవ్వదు)
+      if (isMainAccess) {
+        setStore("localStorage", OWNER_KEY, "TRUE");
+        removeStore("sessionStorage", EXPIRY_KEY);
+        return; // Allow unlimited access forever
+      }
 
-      // 2. ?scan=1 నొక్కిన ప్రతిసారీ కొత్తగా సెషన్ టైమ్ స్టార్ట్ అవుతుంది
+      // 2. ?scan=1 నొక్కిన ప్రతిసారీ కొత్తగా టైమర్ మొదలవుతుంది
       if (isScanned) {
-        if (!PORTAL_CONFIG.SESSION_MINUTES || PORTAL_CONFIG.SESSION_MINUTES <= 0) {
-          sessionStorage.setItem(EXPIRY_KEY, "UNLIMITED");
+        // URL నుండి ?scan=1 ను హైడ్ చేయడం (షేర్ చేసినా పనిచేయకుండా)
+        try {
+          if (window.history && window.history.replaceState) {
+            urlParams.delete("scan");
+            const cleanQuery = urlParams.toString();
+            const cleanUrl = window.location.pathname + (cleanQuery ? "?" + cleanQuery : "") + window.location.hash;
+            window.history.replaceState({}, document.title, cleanUrl);
+          }
+        } catch (e) {}
+
+        const minutes = Number(PORTAL_CONFIG.SESSION_MINUTES);
+        if (isNaN(minutes) || minutes <= 0) {
+          // 0 పెడితే ?scan=1 కూడా Unlimited గా పనిచేస్తుంది
+          setStore("sessionStorage", EXPIRY_KEY, "UNLIMITED");
           return;
         } else {
-          expiryTime = now + PORTAL_CONFIG.SESSION_MINUTES * 60 * 1000;
-          sessionStorage.setItem(EXPIRY_KEY, expiryTime.toString());
+          // 1 లేదా అంతకంటే ఎక్కువ నిమిషాలు పెడితే కౌంట్ స్టార్ట్ అవుతుంది
+          const newExpiry = Date.now() + minutes * 60 * 1000;
+          setStore("sessionStorage", EXPIRY_KEY, newExpiry.toString());
+        }
+      } else {
+        // ఒకవేళ ఓనర్ బ్రౌజర్‌లో గతంలో ?main=1 ఓపెన్ చేసి ఉంటే అన్‌లిమిటెడ్‌గా పనిచేస్తుంది
+        if (getStore("localStorage", OWNER_KEY) === "TRUE") {
+          return;
         }
       }
 
-      if (sessionStorage.getItem(EXPIRY_KEY) === "UNLIMITED") {
+      const savedExpiry = getStore("sessionStorage", EXPIRY_KEY);
+      if (savedExpiry === "UNLIMITED") {
         return;
       }
 
-      // 3. మామూలు లింక్ నొక్కినా లేదా టైమ్ అయిపోయినా వెంటనే లాక్ అవుతుంది
+      const now = Date.now();
+      const expiryTime = parseInt(savedExpiry || "0", 10);
+
+      // 3. మామూలు లింక్ నొక్కినా లేదా టైమ్ అయిపోయినా లాక్ అవుతుంది
       if (!expiryTime || now >= expiryTime) {
         lockPortal();
         return;
