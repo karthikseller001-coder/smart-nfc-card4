@@ -310,7 +310,7 @@
       </div>
 
       <!-- 4-in-a-Row Round Action Buttons Grid -->
-      <div class="grid-buttons">
+      <div class="grid-buttons" id="actionButtonsGrid">
         <!-- 1. Google Reviews Button -->
         <a class="nav-card" id="googleReviewBtn" href="#" target="_blank" rel="noopener noreferrer">
           <div class="icon-circle">
@@ -442,11 +442,20 @@
       // 8. మీ వెబ్‌సైట్ లింక్
       WEBSITE_LINK: "https://yourwebsite.com",
 
-      // 9. క్రింద కనిపించే పేరు
+      // 9. బటన్ల పొజిషన్లు (1, 2, 3, 4, 5 నంబర్లు మార్చుకుంటే ఆ స్థానంలోకి వెళ్తాయి)
+      POSITIONS: {
+        GOOGLE_REVIEWS: 1,
+        CONTACT_US: 2,
+        INSTAGRAM: 3,
+        WHATSAPP: 4,
+        WEBSITE: 5
+      },
+
+      // 10. క్రింద కనిపించే పేరు
       PROVIDED_BY: "Provided by Karthik"
     };
 
-    // ================= APPLY SETTINGS =================
+    // ================= APPLY SETTINGS & POSITIONS =================
     const logoEl = document.getElementById("logoContainer");
     if (PORTAL_CONFIG.LOGO_URL && PORTAL_CONFIG.LOGO_URL.trim() !== "") {
       logoEl.innerHTML = `<img src="${PORTAL_CONFIG.LOGO_URL.trim()}" alt="Brand Logo">`;
@@ -467,59 +476,85 @@
     document.getElementById("websiteBtn").href = PORTAL_CONFIG.WEBSITE_LINK;
     document.getElementById("providedByText").textContent = PORTAL_CONFIG.PROVIDED_BY;
 
+    // బటన్ల పొజిషన్లను సెట్ చేయడం (1 నుండి 5 వరకు)
+    (function applyButtonPositions() {
+      const grid = document.getElementById("actionButtonsGrid");
+      if (!grid || !PORTAL_CONFIG.POSITIONS) return;
+
+      const items = [
+        { el: document.getElementById("googleReviewBtn"), pos: Number(PORTAL_CONFIG.POSITIONS.GOOGLE_REVIEWS) || 1 },
+        { el: document.getElementById("contactCallBtn"),  pos: Number(PORTAL_CONFIG.POSITIONS.CONTACT_US) || 2 },
+        { el: document.getElementById("instagramBtn"),    pos: Number(PORTAL_CONFIG.POSITIONS.INSTAGRAM) || 3 },
+        { el: document.getElementById("whatsappBtn"),     pos: Number(PORTAL_CONFIG.POSITIONS.WHATSAPP) || 4 },
+        { el: document.getElementById("websiteBtn"),      pos: Number(PORTAL_CONFIG.POSITIONS.WEBSITE) || 5 }
+      ];
+
+      // ఇచ్చిన పొజిషన్ నంబర్ ప్రకారం వరుసగా అమర్చడం
+      items.sort((a, b) => a.pos - b.pos);
+      items.forEach(item => {
+        if (item.el) {
+          item.el.style.order = item.pos;
+          grid.appendChild(item.el);
+        }
+      });
+    })();
+
     // ================= SILENT BACKGROUND SESSION & OWNER CONTROL =================
     (function initAccessControl() {
-      const EXPIRY_KEY = "bp_session_expiry_v2";
-      const OWNER_KEY = "bp_owner_unlimited_v2";
+      const EXPIRY_KEY = "bp_tab_session_expiry_v3";
 
-      // Safe Storage Helpers (In-memory fallback if browser blocks storage)
+      // Safe SessionStorage Helpers (Only lives until the browser tab is closed)
       let memStorage = {};
-      function setStore(type, key, val) {
+      function setTabStore(key, val) {
         try {
-          window[type].setItem(key, val);
+          window.sessionStorage.setItem(key, val);
         } catch (e) {
-          memStorage[type + "_" + key] = val;
+          memStorage[key] = val;
         }
       }
-      function getStore(type, key) {
+      function getTabStore(key) {
         try {
-          return window[type].getItem(key);
+          return window.sessionStorage.getItem(key);
         } catch (e) {
-          return memStorage[type + "_" + key] || null;
+          return memStorage[key] || null;
         }
       }
-      function removeStore(type, key) {
+      function removeTabStore(key) {
         try {
-          window[type].removeItem(key);
+          window.sessionStorage.removeItem(key);
         } catch (e) {
-          delete memStorage[type + "_" + key];
+          delete memStorage[key];
         }
       }
+
+      // పాత localStorage లో ఏమైనా సేవ్ అయి ఉంటే దాన్ని పూర్తిగా క్లియర్ చేయడం
+      try {
+        window.localStorage.removeItem("bp_owner_unlimited_v2");
+      } catch (e) {}
 
       const rawSearch = window.location.search || "";
       const urlParams = new URLSearchParams(rawSearch);
 
-      // Check for ?main=1 (case-insensitive check)
+      // Check for ?main=1
       const isMainAccess = urlParams.get("main") === "1" || /(?:^\?|&)main=1(?:&|$)/i.test(rawSearch);
       // Check for ?scan=1
       const isScanned = urlParams.get("scan") === "1" || /(?:^\?|&)scan=1(?:&|$)/i.test(rawSearch);
 
       function lockPortal() {
-        removeStore("sessionStorage", EXPIRY_KEY);
+        removeTabStore(EXPIRY_KEY);
         document.getElementById("mainAppContainer").style.display = "none";
         document.getElementById("expiredOverlay").style.display = "flex";
       }
 
-      // 1. ?main=1 నొక్కినప్పుడు ఎన్ని రోజులైనా లైఫ్‌టైమ్ లాగిన్‌లో ఉంటుంది (ఎప్పటికీ ఎక్స్‌పైర్ అవ్వదు)
+      // 1. ?main=1 నొక్కినప్పుడు ఆ ట్యాబ్ క్లోజ్ చేసేంతవరకు అన్‌లిమిటెడ్‌గా ఉంటుంది
       if (isMainAccess) {
-        setStore("localStorage", OWNER_KEY, "TRUE");
-        removeStore("sessionStorage", EXPIRY_KEY);
-        return; // Allow unlimited access forever
+        setTabStore(EXPIRY_KEY, "UNLIMITED");
+        return;
       }
 
-      // 2. ?scan=1 నొక్కిన ప్రతిసారీ కొత్తగా టైమర్ మొదలవుతుంది
+      // 2. ?scan=1 నొక్కినప్పుడు (గతంలో అదే ట్యాబ్‌లో main ఉన్నా సరే) కొత్తగా టైమర్ మొదలవుతుంది
       if (isScanned) {
-        // URL నుండి ?scan=1 ను హైడ్ చేయడం (షేర్ చేసినా పనిచేయకుండా)
+        // URL నుండి ?scan=1 ను హైడ్ చేయడం
         try {
           if (window.history && window.history.replaceState) {
             urlParams.delete("scan");
@@ -531,22 +566,15 @@
 
         const minutes = Number(PORTAL_CONFIG.SESSION_MINUTES);
         if (isNaN(minutes) || minutes <= 0) {
-          // 0 పెడితే ?scan=1 కూడా Unlimited గా పనిచేస్తుంది
-          setStore("sessionStorage", EXPIRY_KEY, "UNLIMITED");
+          setTabStore(EXPIRY_KEY, "UNLIMITED");
           return;
         } else {
-          // 1 లేదా అంతకంటే ఎక్కువ నిమిషాలు పెడితే కౌంట్ స్టార్ట్ అవుతుంది
           const newExpiry = Date.now() + minutes * 60 * 1000;
-          setStore("sessionStorage", EXPIRY_KEY, newExpiry.toString());
-        }
-      } else {
-        // ఒకవేళ ఓనర్ బ్రౌజర్‌లో గతంలో ?main=1 ఓపెన్ చేసి ఉంటే అన్‌లిమిటెడ్‌గా పనిచేస్తుంది
-        if (getStore("localStorage", OWNER_KEY) === "TRUE") {
-          return;
+          setTabStore(EXPIRY_KEY, newExpiry.toString());
         }
       }
 
-      const savedExpiry = getStore("sessionStorage", EXPIRY_KEY);
+      const savedExpiry = getTabStore(EXPIRY_KEY);
       if (savedExpiry === "UNLIMITED") {
         return;
       }
@@ -554,7 +582,7 @@
       const now = Date.now();
       const expiryTime = parseInt(savedExpiry || "0", 10);
 
-      // 3. మామూలు లింక్ నొక్కినా లేదా టైమ్ అయిపోయినా లాక్ అవుతుంది
+      // 3. ట్యాబ్ క్లోజ్ చేసి కొత్త ట్యాబ్‌లో మామూలు లింక్ నొక్కినా లేదా టైమ్ అయిపోయినా లాక్ అవుతుంది
       if (!expiryTime || now >= expiryTime) {
         lockPortal();
         return;
