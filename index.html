@@ -1,2126 +1,638 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Hotel Royal Spice - Digital Menu & Ordering</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,700&display=swap" rel="stylesheet">
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script>
-  tailwind.config = {
-    theme: {
-      extend: {
-        fontFamily: {
-          sans: ['Inter', 'sans-serif'],
-          serif: ['Playfair Display', 'serif'],
-        },
-        colors: {
-          brand: {
-            50: '#fffbeb',
-            100: '#fef3c7',
-            500: '#f59e0b',
-            600: '#d97706',
-            800: '#92400e',
-            900: '#78350f',
-          }
-        }
-      }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Business Portal</title>
+  <!-- Google Fonts for matching typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --navy: #072247;
+      --gold-mid: #e5b343;
     }
-  }
-</script>
-<style>
-  body { background-color: #faf9f6; color: #1c1917; overflow-x: hidden; width: 100%; max-width: 100vw; }
-  .gold-gradient { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
-  .dark-header { background: linear-gradient(180deg, #16110c 0%, #241b13 100%); }
-  .hide-scrollbar::-webkit-scrollbar { display: none; }
-  .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-  * { box-sizing: border-box; }
-</style>
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #e9ecef;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .app-container {
+      position: relative;
+      width: 100%;
+      max-width: 430px;
+      min-height: 100vh;
+      background: radial-gradient(circle at 50% 45%, #ffffff 40%, #f5f2eb 100%);
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 36px 24px 42px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+    }
+
+    .wave-top-right {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 185px;
+      height: 185px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .wave-bottom {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 115px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .content-wrapper {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      justify-content: space-evenly;
+      gap: 20px;
+    }
+
+    /* Circular Double-Gold Logo Frame */
+    .logo-ring-outer {
+      width: 248px;
+      height: 248px;
+      border-radius: 50%;
+      padding: 5px;
+      background: linear-gradient(135deg, #f3cd5d 0%, #c88f20 50%, #f5d36c 100%);
+      box-shadow: 0 10px 25px rgba(7, 34, 71, 0.08);
+      margin-top: 4px;
+    }
+
+    .logo-ring-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 4px solid #ffffff;
+      padding: 3.5px;
+      background: linear-gradient(135deg, #e7b544 0%, #f7d872 50%, #c68e20 100%);
+    }
+
+    .logo-circle {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: #ffffff;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+    }
+
+    .logo-circle img {
+      width: 86%;
+      height: 86%;
+      object-fit: contain;
+    }
+
+    /* 4-Column Compact Round Icons Grid */
+    .grid-buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      width: 100%;
+      max-width: 370px;
+      margin: 10px 0;
+      justify-items: center;
+    }
+
+    .nav-card {
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      padding: 4px;
+      transition: transform 0.18s ease;
+    }
+
+    .nav-card:hover { transform: translateY(-3px); }
+    .nav-card:active { transform: scale(0.94); }
+
+    .icon-circle {
+      width: 66px;
+      height: 66px;
+      border-radius: 50%;
+      background-color: var(--navy);
+      border: 2px solid var(--gold-mid);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 7px;
+      box-shadow: 0 6px 14px rgba(7, 34, 71, 0.22);
+    }
+
+    .nav-label {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 11.5px;
+      color: var(--navy);
+      text-align: center;
+      line-height: 1.2;
+    }
+
+    /* Thank You & 5 Stars Section */
+    .thankyou-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .thankyou-text {
+      font-family: 'Great Vibes', cursive;
+      font-size: 64px;
+      color: var(--navy);
+      line-height: 1;
+      text-shadow: 0 2px 4px rgba(7, 34, 71, 0.08);
+    }
+
+    .stars-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 4px;
+      cursor: pointer;
+    }
+
+    .star-icon {
+      width: 36px;
+      height: 36px;
+      filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.16));
+      transition: transform 0.2s ease;
+    }
+
+    .star-icon:hover { transform: scale(1.15); }
+
+    .provided-by {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--navy);
+      opacity: 0.78;
+      margin-top: 8px;
+      letter-spacing: 0.4px;
+    }
+
+    /* Session Expired Lock Screen */
+    .session-expired-overlay {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      width: 100%;
+      max-width: 430px;
+      min-height: 100vh;
+      background: radial-gradient(circle at 50% 45%, #ffffff 40%, #f5f2eb 100%);
+      padding: 32px 24px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+    }
+
+    .lock-badge {
+      width: 84px;
+      height: 84px;
+      border-radius: 50%;
+      background: var(--navy);
+      border: 3px solid var(--gold-mid);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 25px rgba(7, 34, 71, 0.2);
+    }
+
+    .expired-title {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 22px;
+      color: var(--navy);
+      margin-bottom: 10px;
+    }
+
+    .expired-desc {
+      font-size: 14px;
+      color: #4a5568;
+      line-height: 1.6;
+      max-width: 300px;
+    }
+  </style>
 </head>
-<body class="min-h-screen flex flex-col font-sans antialiased">
+<body>
 
-  <!-- Toast Notification -->
-  <div id="toastBox" class="fixed bottom-6 right-6 z-50 bg-stone-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-amber-500/40 flex items-center gap-3 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
-    <i class="fa-solid fa-circle-check text-amber-400"></i>
-    <span id="toastText" class="text-xs font-bold">Notification</span>
+  <!-- Locked / Session Expired Screen -->
+  <div class="session-expired-overlay" id="expiredOverlay">
+    <div class="lock-badge">
+      <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#e5b343" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+      </svg>
+    </div>
+    <h2 class="expired-title">Session Expired</h2>
+    <p class="expired-desc">Please scan the official QR code again to access this business portal.</p>
   </div>
 
-  <!-- 404 NOT FOUND / SESSION EXPIRED SCREEN -->
-  <div id="page-404" class="hidden min-h-screen flex flex-col items-center justify-center bg-white px-4 text-center">
-    <div class="max-w-md space-y-4">
-      <div class="w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mx-auto text-3xl">
-        <i class="fa-solid fa-qrcode"></i>
-      </div>
-      <h1 class="text-6xl font-black text-stone-900 tracking-tight">404</h1>
-      <h2 class="text-xl font-bold text-stone-800">Invalid Access / Session Expired</h2>
-      <p class="text-sm text-stone-500">Please scan a valid table QR code to access the menu and place your order.</p>
-    </div>
-  </div>
+  <!-- Main Business Portal Screen -->
+  <div class="app-container" id="mainAppContainer">
+    <!-- Top Right Decorative Waves -->
+    <svg class="wave-top-right" viewBox="0 0 200 200" fill="none">
+      <defs>
+        <linearGradient id="goldWaveTop" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#f6d365" />
+          <stop offset="50%" stop-color="#e5b343" />
+          <stop offset="100%" stop-color="#c58e22" />
+        </linearGradient>
+      </defs>
+      <path d="M55 0 C95 45, 165 55, 200 125 L200 0 Z" fill="url(#goldWaveTop)" />
+      <path d="M88 0 C120 35, 175 45, 200 105 L200 0 Z" fill="#072247" />
+      <path d="M125 40 C105 55, 118 82, 148 88 C178 94, 190 108, 200 122 L200 60 Z" fill="#072247" />
+    </svg>
 
-  <!-- Top Navigation Header -->
-  <header id="mainSiteHeader" class="dark-header text-white sticky top-0 z-40 shadow-lg border-b border-amber-500/20">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-      <div onclick="showPage('home')" class="flex items-center gap-3 cursor-pointer group justify-start">
-        <div id="brandLogoContainer" class="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0 overflow-hidden">
-          <img id="headerLogoImg" src="" alt="Logo" class="w-full h-full object-cover hidden" onerror="this.classList.add('hidden')">
-          <svg id="headerLogoSvg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"/>
-            <line x1="6" y1="17" x2="18" y2="17"/>
-          </svg>
-        </div>
-        <div class="flex flex-col text-left">
-          <h1 id="headerBrandName" class="font-serif font-extrabold text-xl sm:text-2xl text-white tracking-wide leading-tight">Hotel Royal Spice</h1>
-          <span id="headerBrandTagline" class="text-[11px] text-amber-400 font-semibold tracking-wider uppercase leading-none mt-0.5">Restaurant</span>
-        </div>
-      </div>
-
-      <nav class="hidden md:flex items-center gap-6 text-sm font-semibold text-stone-300">
-        <button type="button" onclick="showPage('home')" class="hover:text-amber-400 transition-colors bg-transparent border-none cursor-pointer">Home</button>
-        <button type="button" onclick="showPage('menu')" class="hover:text-amber-400 transition-colors bg-transparent border-none cursor-pointer">Explore Menu</button>
-        <button type="button" onclick="showPage('myorders')" class="hover:text-amber-400 transition-colors bg-transparent border-none cursor-pointer">My Orders</button>
-      </nav>
-
-      <div class="hidden md:flex items-center gap-3">
-        <button type="button" onclick="showPage('menu')" class="gold-gradient text-stone-950 font-extrabold px-5 py-2.5 rounded-xl text-xs shadow hover:opacity-95 transition-all cursor-pointer">
-          Order Now
-        </button>
-      </div>
-
-      <div id="tableSessionBadge" class="hidden items-center gap-1.5 bg-amber-500/20 border border-amber-400/50 px-3 py-1 rounded-full text-xs">
-        <span class="font-bold text-amber-300"><i class="fa-solid fa-chair mr-1"></i>Table <span id="badgeTableNum">-</span></span>
-      </div>
-    </div>
-  </header>
-
-  <!-- Clean White Navigation Sub-Bar -->
-  <div id="whiteNavBarContainer" class="hidden bg-white border-b border-stone-200 shadow-sm sticky top-[73px] sm:top-[81px] z-30">
-    <div class="max-w-7xl mx-auto px-2 sm:px-6 py-2 flex items-center justify-between">
-      <nav id="mainNavBar" class="flex items-center gap-1 sm:gap-2 w-full justify-around sm:justify-start">
-        <button type="button" onclick="showPage('home')" id="nav-home" class="nav-btn px-2 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold text-stone-800 bg-stone-100 hover:bg-stone-200 transition-all flex items-center gap-1 cursor-pointer">
-          <i class="fa-solid fa-house text-amber-600"></i> Home
-        </button>
-        <button type="button" onclick="showPage('menu')" id="nav-menu" class="nav-btn px-2 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold text-stone-600 hover:bg-stone-100 transition-all flex items-center gap-1 cursor-pointer">
-          <i class="fa-solid fa-utensils text-amber-600"></i> Menu
-        </button>
-        <button type="button" onclick="showPage('cart')" id="nav-cart" class="nav-btn relative px-2 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold text-stone-600 hover:bg-stone-100 transition-all flex items-center gap-1 cursor-pointer">
-          <i class="fa-solid fa-bag-shopping text-amber-600"></i> Cart
-          <span id="cartCountBadge" class="ml-0.5 bg-amber-500 text-stone-950 font-extrabold text-[9px] px-1 py-0.2 rounded-full">0</span>
-        </button>
-        <button type="button" onclick="showPage('myorders')" id="nav-myorders" class="nav-btn px-2 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold text-stone-600 hover:bg-stone-100 transition-all flex items-center gap-1 cursor-pointer">
-          <i class="fa-solid fa-receipt text-amber-600"></i> My Orders
-        </button>
-      </nav>
-    </div>
-  </div>
-
-  <!-- Main Content Area -->
-  <main id="mainAppContainer" class="flex-1">
-
-    <!-- HOME PAGE -->
-    <section id="page-home" class="page-section">
-      <div id="homeHeroBgContainer" class="relative min-h-[82vh] flex items-start pt-10 sm:pt-14 pb-20 px-4 sm:px-8 overflow-hidden bg-stone-950">
-        <img id="homeHeroBgImg" src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1600&q=80" alt="Restaurant" onerror="this.src='https://placehold.co/1600x900/1c1917/f59e0b?text=Royal+Spice'" class="absolute inset-0 w-full h-full object-cover opacity-40">
-        <div class="absolute inset-0 bg-gradient-to-r from-stone-950 via-stone-950/80 to-transparent"></div>
-
-        <div class="relative z-10 max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-          <div class="space-y-4">
-            <span id="homeWelcomeBadge" class="inline-block px-4 py-1.5 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs font-bold uppercase tracking-widest">
-              Welcome to Royal Dining
-            </span>
-            <h2 class="font-serif font-extrabold text-4xl sm:text-6xl text-white leading-tight">
-              <span id="homeHeroTitle1">Good Food</span><br>
-              <span id="homeHeroTitle2" class="text-amber-400 italic">Good Mood</span>
-            </h2>
-            <p id="homeHeroDesc" class="text-stone-300 text-base sm:text-lg max-w-lg leading-relaxed">
-              Delicious food, great ambiance and unforgettable moments! Order fresh dishes directly from your table.
-            </p>
-            <div class="pt-3 flex flex-wrap gap-4">
-              <button type="button" onclick="showPage('menu')" class="gold-gradient text-stone-950 font-extrabold px-7 py-3.5 rounded-full text-sm sm:text-base shadow-lg shadow-amber-500/30 hover:scale-105 transition-transform flex items-center gap-2 cursor-pointer z-20 relative">
-                <span>View Menu</span>
-                <i class="fa-solid fa-arrow-right"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- MENU PAGE -->
-    <section id="page-menu" class="page-section hidden max-w-7xl mx-auto px-4 sm:px-6 py-8 pb-24 space-y-6 relative">
-      <div class="text-center space-y-2">
-        <div class="flex items-center justify-center gap-3">
-          <span class="h-0.5 w-10 bg-amber-500"></span>
-          <h2 class="font-serif font-bold text-3xl sm:text-4xl text-stone-900">Our Menu</h2>
-          <span class="h-0.5 w-10 bg-amber-500"></span>
-        </div>
-        <p class="text-sm text-stone-500">Freshly prepared dishes served hot to your table</p>
-      </div>
-
-      <div class="flex flex-col sm:flex-row gap-3 justify-between items-center bg-white p-3 rounded-2xl shadow-sm border border-stone-200">
-        <div class="relative w-full sm:w-80">
-          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-stone-400 text-sm"></i>
-          <input id="searchInput" oninput="renderFood()" type="text" placeholder="Search dishes..." class="w-full pl-10 pr-4 py-2 rounded-xl bg-stone-100 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
-        </div>
-        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-          <button type="button" onclick="setTypeFilter('All')" id="typeBtn-All" class="type-filter-btn px-3.5 py-1.5 rounded-xl text-xs font-bold bg-stone-900 text-white cursor-pointer">All</button>
-          <button type="button" onclick="setTypeFilter('Veg')" id="typeBtn-Veg" class="type-filter-btn px-3.5 py-1.5 rounded-xl text-xs font-bold bg-stone-100 text-emerald-700 border border-emerald-200 cursor-pointer">Veg</button>
-          <button type="button" onclick="setTypeFilter('Non-Veg')" id="typeBtn-Non-Veg" class="type-filter-btn px-3.5 py-1.5 rounded-xl text-xs font-bold bg-stone-100 text-red-700 border border-red-200 cursor-pointer">Non-Veg</button>
-        </div>
-      </div>
-
-      <div id="categoryBar" class="flex items-center gap-2 overflow-x-auto hide-scrollbar py-1"></div>
-
-      <div id="foodGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"></div>
-
-      <div id="stickyCartBar" class="hidden fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40 w-11/12 max-w-md bg-stone-900/95 backdrop-blur-md text-white p-4 rounded-2xl shadow-2xl border border-amber-500/40 items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-amber-500 text-stone-950 font-black flex items-center justify-center text-sm shadow">
-            <span id="stickyCartCount">0</span>
-          </div>
-          <div>
-            <span class="text-xs text-stone-400 block">Items Selected</span>
-            <span id="stickyCartTotal" class="text-base font-black text-amber-400">₹0</span>
-          </div>
-        </div>
-        <button type="button" onclick="showPage('cart')" class="gold-gradient text-stone-950 font-extrabold px-6 py-2.5 rounded-xl text-xs shadow hover:opacity-95 transition-all flex items-center gap-2 cursor-pointer">
-          <span>Go to Cart</span>
-          <i class="fa-solid fa-arrow-right"></i>
-        </button>
-      </div>
-    </section>
-
-    <!-- CART PAGE -->
-    <section id="page-cart" class="page-section hidden max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
-      <div class="flex items-center justify-between border-b border-stone-200 pb-4">
-        <h2 class="font-serif font-bold text-2xl sm:text-3xl text-stone-900">Your Order Cart</h2>
-        <button type="button" onclick="showPage('menu')" class="text-xs font-bold text-brand-800 hover:underline cursor-pointer">+ Add More Items</button>
-      </div>
-
-      <div id="cartItemsContainer" class="space-y-3"></div>
-
-      <div id="checkoutDetailsBox" class="hidden bg-white p-6 rounded-2xl shadow-sm border border-stone-200 space-y-4">
-        <h3 class="font-bold text-stone-800 text-base border-b pb-2">Customer & Table Details</h3>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label class="block text-xs font-bold text-stone-600 mb-1">Customer Name *</label>
-            <input id="custName" type="text" placeholder="Enter your name" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-stone-600 mb-1">WhatsApp Mobile Number *</label>
-            <input id="custPhone" type="tel" maxlength="10" placeholder="10-digit mobile number" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-stone-600 mb-1">
-              Table Number * <span id="tableLockedLabel" class="hidden text-[10px] text-emerald-700 font-bold">(Fixed via QR)</span>
-            </label>
-            <input id="custTable" type="text" placeholder="Table No." class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
-          </div>
-        </div>
-
-        <div class="pt-4 border-t border-stone-200 space-y-2 text-sm">
-          <div class="flex justify-between text-stone-600">
-            <span>Sub-Total:</span>
-            <span id="cartSubTotalAmount" class="font-bold">₹0</span>
-          </div>
-          <div class="flex justify-between text-stone-600">
-            <span id="cartTaxLabel">Tax (5%):</span>
-            <span id="cartTaxAmount" class="font-bold">₹0</span>
-          </div>
-          <div class="flex justify-between text-base font-black text-stone-900 pt-2 border-t border-dashed">
-            <span>Grand Total Payable:</span>
-            <span id="cartTotalAmount" class="text-amber-600">₹0</span>
-          </div>
-        </div>
-
-        <div class="flex flex-col sm:flex-row justify-end items-center pt-2">
-          <button type="button" onclick="proceedToPayment()" class="w-full sm:w-auto gold-gradient text-stone-950 font-extrabold px-8 py-3.5 rounded-xl text-sm shadow-lg hover:opacity-95 transition-all cursor-pointer">
-            Proceed to Payment <i class="fa-solid fa-arrow-right ml-1"></i>
-          </button>
-        </div>
-      </div>
-    </section>
-
-    <!-- PAYMENT PAGE -->
-    <section id="page-payment" class="page-section hidden max-w-lg mx-auto px-4 py-8">
-      <div class="bg-white rounded-3xl shadow-xl border border-stone-200 overflow-hidden">
-        <div class="dark-header text-white p-6 text-center space-y-1">
-          <span class="text-xs uppercase tracking-widest text-amber-400 font-bold">Select Payment Method</span>
-          <h2 class="text-3xl font-black" id="payScreenAmount">₹0</h2>
-          <p class="text-xs text-stone-300" id="payScreenSummary">Table - • Customer</p>
-        </div>
-
-        <div class="p-6 space-y-5 text-center">
-          <div id="paymentChoiceStep" class="space-y-4">
-            <p class="text-xs font-bold text-stone-500 uppercase tracking-wider">Choose how you would like to pay</p>
-            <button type="button" onclick="handlePaymentChoice('UPI')" class="w-full py-4 px-5 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-sm shadow-lg flex items-center justify-center gap-3 transition-all cursor-pointer">
-              <i class="fa-solid fa-qrcode text-lg"></i>
-              <span id="upiBtnLabel">Pay with PhonePe / Any UPI App</span>
-            </button>
-
-            <div class="flex items-center gap-3 text-xs text-stone-400 font-bold">
-              <span class="h-px bg-stone-200 flex-1"></span>
-              <span>OR</span>
-              <span class="h-px bg-stone-200 flex-1"></span>
-            </div>
-
-            <button type="button" onclick="handlePaymentChoice('Cash at Counter')" class="w-full py-4 px-5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-stone-950 font-extrabold text-sm shadow-lg flex items-center justify-center gap-3 transition-all cursor-pointer">
-              <i class="fa-solid fa-money-bill-wave text-lg"></i>
-              <span>Pay Cash at Counter Instead</span>
-            </button>
-
-            <div class="pt-2">
-              <button type="button" onclick="showPage('cart')" class="text-xs text-stone-400 hover:text-stone-600 underline cursor-pointer">Back to Cart</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ORDER STATUS TRACKER -->
-    <section id="page-status" class="page-section hidden max-w-lg mx-auto px-4 py-12">
-      <div class="bg-white rounded-3xl shadow-xl border border-stone-200 p-8 text-center space-y-6">
-        <div id="statusIconBox" class="w-20 h-20 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-4xl animate-pulse">
-          <i id="statusIcon" class="fa-solid fa-clock-rotate-left"></i>
-        </div>
-        <div class="space-y-2">
-          <h2 id="statusTitle" class="font-serif font-bold text-2xl text-stone-900">Pending Approval</h2>
-          <p id="statusDesc" class="text-sm text-stone-600">Your payment has been submitted. Waiting for restaurant staff to review and accept your order...</p>
-        </div>
-        <div class="p-4 bg-stone-50 rounded-2xl border border-stone-200 text-left space-y-2 text-xs">
-          <div class="flex justify-between font-bold">
-            <span class="text-stone-500">Order ID:</span>
-            <span id="trackOrderId" class="text-stone-900">#ORD0000</span>
-          </div>
-          <div class="flex justify-between font-bold">
-            <span class="text-stone-500">Table Number:</span>
-            <span id="trackTableNum" class="text-stone-900">-</span>
-          </div>
-          <div class="flex justify-between font-bold">
-            <span class="text-stone-500">Total Amount:</span>
-            <span id="trackTotal" class="text-stone-900">₹0</span>
-          </div>
-        </div>
-        <div class="flex gap-2">
-          <button type="button" onclick="showPage('myorders')" class="flex-1 py-3 rounded-xl bg-amber-500 text-stone-950 font-bold text-xs hover:opacity-90 transition-all cursor-pointer">
-            View My Orders
-          </button>
-          <button type="button" onclick="showPage('menu')" class="flex-1 py-3 rounded-xl bg-stone-900 text-white font-bold text-xs hover:bg-stone-800 transition-all cursor-pointer">
-            Back to Menu
-          </button>
-        </div>
-      </div>
-    </section>
-
-    <!-- CUSTOMER MY ORDERS -->
-    <section id="page-myorders" class="page-section hidden max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
-      <div class="flex items-center justify-between border-b border-stone-200 pb-4">
-        <div>
-          <h2 class="font-serif font-bold text-2xl sm:text-3xl text-stone-900">My Orders History</h2>
-          <p class="text-xs text-stone-500">Track all your food orders placed from this device/table</p>
-        </div>
-        <button type="button" onclick="showPage('menu')" class="text-xs font-bold text-brand-800 hover:underline cursor-pointer">+ Order More</button>
-      </div>
-      <div id="customerMyOrdersList" class="space-y-4"></div>
-    </section>
-
-    <!-- STANDALONE STAFF / MASTER CONTROL LOGIN & PANELS -->
-    <section id="page-admin" class="page-section hidden min-h-screen flex flex-col justify-center max-w-6xl mx-auto px-4 py-8 space-y-6">
+    <!-- Main Content -->
+    <div class="content-wrapper">
       
-      <!-- Staff Login Box -->
-      <div id="loginBox" class="bg-white p-8 sm:p-10 rounded-3xl shadow-2xl max-w-md w-full mx-auto border border-stone-200 text-center space-y-5">
-        <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-inner">
-          <i class="fa-solid fa-shield-halved"></i>
-        </div>
-        <div class="space-y-1">
-          <h2 class="font-serif font-bold text-2xl text-stone-900">Staff Login</h2>
-          <p class="text-xs text-stone-500">Enter authorized passcode to access dashboard</p>
-        </div>
-        <div class="space-y-3 pt-2">
-          <input id="passcodeInput" type="password" onkeydown="if(event.key==='Enter') login()" placeholder="Enter Passcode" class="w-full px-4 py-3.5 rounded-xl border border-stone-300 text-center text-lg tracking-widest focus:ring-2 focus:ring-blue-500 outline-none">
-          <button type="button" onclick="login()" class="w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-sm shadow-lg transition-all cursor-pointer">
-            Login to Dashboard
-          </button>
-          <p id="loginMsg" class="text-xs font-bold text-red-600"></p>
-        </div>
-      </div>
-
-      <!-- Master Control Box -->
-      <div id="masterBox" class="hidden space-y-6 w-full">
-        <div class="bg-blue-900 text-white p-6 rounded-3xl shadow-xl flex flex-col md:flex-row justify-between items-center gap-4">
-          <div class="flex items-center gap-3">
-            <div class="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center text-blue-300 text-xl font-bold">
-              <i class="fa-solid fa-crown"></i>
-            </div>
-            <div>
-              <h2 class="font-serif font-bold text-2xl">Master Panel Dashboard</h2>
-              <p class="text-xs text-blue-200">Full system owner controls & QR code generator</p>
-            </div>
-          </div>
-          <div class="flex items-center gap-2 flex-wrap">
-            <button type="button" onclick="switchMasterSubPage('qr')" id="masterTabBtn-qr" class="master-sub-btn px-4 py-2 rounded-xl text-xs font-bold bg-blue-800 text-white shadow cursor-pointer">Table QR</button>
-            <button type="button" onclick="switchMasterSubPage('passcodes')" id="masterTabBtn-passcodes" class="master-sub-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-blue-900 cursor-pointer">Passcodes</button>
-            <button type="button" onclick="switchMasterSubPage('branding')" id="masterTabBtn-branding" class="master-sub-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-blue-900 cursor-pointer">Branding</button>
-            <button type="button" onclick="logout()" class="px-4 py-2 rounded-xl text-xs font-bold bg-red-600 text-white hover:bg-red-700 cursor-pointer">Logout</button>
-          </div>
-        </div>
-
-        <div id="masterSubPage-qr" class="master-sub-page bg-white p-6 rounded-3xl shadow-sm border border-stone-200 space-y-6">
-          <h3 class="font-serif font-bold text-xl text-stone-900">Table QR Link Manager & Session Timer</h3>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label class="block text-xs font-bold text-stone-600 mb-1">Table Number/Name</label>
-              <input id="tableGenNumber" type="text" placeholder="e.g. 1 or VIP-1" class="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-stone-600 mb-1">Session Duration (Minutes)</label>
-              <input id="tableSessionDuration" type="number" value="60" placeholder="e.g. 60 mins" class="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-            </div>
-            <div class="flex items-end">
-              <button type="button" onclick="generateTableQR()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow cursor-pointer">
-                Generate Table QR
-              </button>
-            </div>
-          </div>
-
-          <div id="tableQRResult" class="hidden p-6 bg-blue-50 rounded-2xl border border-blue-200 text-center space-y-4">
-            <h4 id="tableQRTitle" class="font-bold text-blue-900 text-base">Table QR</h4>
-            <div class="inline-block p-4 bg-white rounded-2xl shadow border border-stone-200">
-              <img id="tableQRImg" class="w-48 h-48 mx-auto object-contain bg-white" alt="Table QR" src="">
-            </div>
-            <div>
-              <a id="downloadTableQrBtn" href="#" download="Table_QR.png" class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-stone-900 text-white text-xs font-bold rounded-xl hover:bg-stone-800 transition-colors shadow cursor-pointer">
-                <i class="fa-solid fa-download"></i> Download QR Code
-              </a>
-            </div>
-            <div class="flex flex-col sm:flex-row items-center justify-center gap-2 pt-2">
-              <p id="tableQRUrl" class="text-xs text-blue-700 font-mono break-all select-all bg-white p-2.5 rounded-xl border border-blue-200 flex-1"></p>
-              <button type="button" onclick="copyTableQRUrl()" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shrink-0 cursor-pointer">
-                <i class="fa-solid fa-copy mr-1"></i> Copy URL
-              </button>
-            </div>
-          </div>
-
-          <div class="pt-6 border-t border-stone-200 space-y-4">
-            <h4 class="font-bold text-stone-800 text-sm">Tax / GST Name & Percentage Settings</h4>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label class="block text-xs font-bold text-stone-600 mb-1">Tax / GST Label Name</label>
-                <input id="masterTaxLabelInput" type="text" value="Tax" placeholder="e.g. GST or VAT" class="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-sm outline-none">
-              </div>
-              <div>
-                <label class="block text-xs font-bold text-stone-600 mb-1">Tax Percentage (%)</label>
-                <input id="masterTaxRateInput" type="number" step="0.1" value="5" class="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-sm outline-none">
-              </div>
-              <div class="flex items-end">
-                <button type="button" onclick="saveMasterTaxSettings()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow cursor-pointer">Save Tax Settings</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="pt-6 border-t border-stone-200 space-y-4">
-            <h4 class="font-bold text-stone-800 text-sm">Generated Tables & Active Sessions</h4>
-            <div id="activeTablesQrList" class="space-y-2">
-              <p class="text-xs text-stone-400 italic">No table QR generated yet.</p>
-            </div>
-          </div>
-        </div>
-
-        <div id="masterSubPage-passcodes" class="master-sub-page hidden bg-white p-6 rounded-3xl shadow-sm border border-stone-200 space-y-6">
-          <h3 class="font-serif font-bold text-xl text-stone-900">Passcodes Settings</h3>
-          <div class="max-w-md space-y-4">
-            <div>
-              <label class="block text-xs font-bold text-stone-600 mb-1">New Master Control Passcode</label>
-              <input id="masterNewMasterPassInput" type="text" placeholder="Enter new master passcode" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm outline-none">
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-stone-600 mb-1">New Staff Admin Passcode</label>
-              <input id="masterNewPasscodeInput" type="text" placeholder="Enter new staff admin passcode" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm outline-none">
-            </div>
-            <button type="button" onclick="saveNewPasscodes()" class="py-3 px-6 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow cursor-pointer">Update Passcodes</button>
-          </div>
-        </div>
-
-        <div id="masterSubPage-branding" class="master-sub-page hidden bg-white p-6 rounded-3xl shadow-sm border border-stone-200 space-y-6">
-          <h3 class="font-serif font-bold text-xl text-stone-900">Website Branding, URLs & Content Master Editor</h3>
-          <p class="text-xs text-stone-500">Edit all website branding titles, logos, background image URLs, and initial menu items in one place.</p>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-bold text-stone-600 mb-1">Brand Name</label>
-              <input id="editBrandName" type="text" class="w-full px-3 py-2 rounded-xl border text-sm">
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-stone-600 mb-1">Tagline</label>
-              <input id="editBrandTagline" type="text" class="w-full px-3 py-2 rounded-xl border text-sm">
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-stone-600 mb-1">Header Logo Image URL</label>
-              <input id="editHeaderLogoUrl" type="text" placeholder="https://..." class="w-full px-3 py-2 rounded-xl border text-sm">
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-stone-600 mb-1">WhatsApp Invoice Header Title</label>
-              <input id="editWaTitle" type="text" class="w-full px-3 py-2 rounded-xl border text-sm">
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-stone-600 mb-1">Home Hero Background Image URL</label>
-              <input id="editHeroBgUrl" type="text" placeholder="https://..." class="w-full px-3 py-2 rounded-xl border text-sm">
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-stone-600 mb-1">Home Badge Text</label>
-              <input id="editHomeBadge" type="text" class="w-full px-3 py-2 rounded-xl border text-sm">
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-stone-600 mb-1">Home Title 1</label>
-              <input id="editHomeTitle1" type="text" class="w-full px-3 py-2 rounded-xl border text-sm">
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-stone-600 mb-1">Home Title 2</label>
-              <input id="editHomeTitle2" type="text" class="w-full px-3 py-2 rounded-xl border text-sm">
-            </div>
-            <div class="sm:col-span-2">
-              <label class="block text-xs font-bold text-stone-600 mb-1">Hero Description</label>
-              <textarea id="editHomeDesc" rows="2" class="w-full px-3 py-2 rounded-xl border text-sm"></textarea>
-            </div>
-            <div class="sm:col-span-2">
-              <label class="block text-xs font-bold text-stone-600 mb-1">Footer Text</label>
-              <input id="editFooterText" type="text" class="w-full px-3 py-2 rounded-xl border text-sm">
-            </div>
-          </div>
-          <button type="button" onclick="saveBrandingSettings()" class="py-3 px-6 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow cursor-pointer">Save All Branding & URLs</button>
+      <!-- Circular Logo Frame -->
+      <div class="logo-ring-outer">
+        <div class="logo-ring-inner">
+          <a class="logo-circle" id="logoContainer" href="javascript:void(0)">
+            <!-- Default Universal Royal Emblem -->
+            <svg viewBox="0 0 240 240" width="90%" height="90%" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="universalGold" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#f8dc7c"/>
+                  <stop offset="50%" stop-color="#e2ae3d"/>
+                  <stop offset="100%" stop-color="#c38b1e"/>
+                </linearGradient>
+              </defs>
+              <circle cx="120" cy="120" r="96" fill="none" stroke="url(#universalGold)" stroke-width="2.5" stroke-dasharray="4 6"/>
+              <path d="M78 102 L68 66 L96 84 L120 56 L144 84 L172 66 L162 102 Z" fill="url(#universalGold)" stroke="#072247" stroke-width="3.5" stroke-linejoin="round"/>
+              <circle cx="68" cy="60" r="4.5" fill="#072247"/>
+              <circle cx="120" cy="49" r="5.5" fill="#072247"/>
+              <circle cx="172" cy="60" r="4.5" fill="#072247"/>
+              <rect x="78" y="106" width="84" height="7" rx="3.5" fill="#072247"/>
+              <polygon points="120,122 146,144 120,166 94,144" fill="#072247"/>
+              <polygon points="120,129 137,144 120,159 103,144" fill="url(#universalGold)"/>
+              <path d="M68 144 L72 136 L76 144 L84 148 L76 152 L72 160 L68 152 L60 148 Z" fill="url(#universalGold)"/>
+              <path d="M172 144 L176 136 L180 144 L188 148 L180 152 L176 160 L172 152 L164 148 Z" fill="url(#universalGold)"/>
+              <path d="M56 186 C95 166, 148 164, 188 174 C148 173, 98 177, 56 186 Z" fill="#072247"/>
+            </svg>
+          </a>
         </div>
       </div>
 
-      <!-- Admin Box (Kitchen / Orders / Menu) -->
-      <div id="adminBox" class="hidden space-y-6 w-full">
-        <div class="bg-blue-900 text-white p-6 rounded-3xl shadow-xl flex flex-col md:flex-row justify-between items-center gap-4">
-          <div class="flex items-center gap-3">
-            <div class="w-12 h-12 bg-white/10 text-blue-300 rounded-xl flex items-center justify-center text-xl font-bold">
-              <i class="fa-solid fa-utensils"></i>
-            </div>
-            <div>
-              <h2 class="font-serif font-bold text-2xl">Admin Kitchen & Orders Panel</h2>
-              <p class="text-xs text-blue-200">Manage live orders, dishes & sales reports</p>
-            </div>
+      <!-- 4-in-a-Row Round Action Buttons Grid -->
+      <div class="grid-buttons" id="actionButtonsGrid">
+        <!-- 1. Google Reviews Button -->
+        <a class="nav-card" id="googleReviewBtn" href="#" target="_blank" rel="noopener noreferrer">
+          <div class="icon-circle">
+            <svg width="32" height="32" viewBox="0 0 48 48">
+              <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+              <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+              <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+              <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+            </svg>
           </div>
-          <div class="flex items-center gap-2 flex-wrap">
-            <button type="button" onclick="switchAdminSubPage('tables')" id="adminTabBtn-tables" class="admin-sub-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-blue-900 cursor-pointer">Tables</button>
-            <button type="button" onclick="switchAdminSubPage('sales')" id="adminTabBtn-sales" class="admin-sub-btn px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white shadow cursor-pointer">Sales</button>
-            <button type="button" onclick="switchAdminSubPage('orders')" id="adminTabBtn-orders" class="admin-sub-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-blue-900 cursor-pointer">Live Orders</button>
-            <button type="button" onclick="switchAdminSubPage('menu')" id="adminTabBtn-menu" class="admin-sub-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-blue-900 cursor-pointer">Menu</button>
-            <button type="button" id="masterSwitchBackBtn" onclick="switchToMasterPanel()" class="hidden px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-stone-950 cursor-pointer">Master Panel</button>
-            <button type="button" onclick="logout()" class="px-4 py-2 rounded-xl text-xs font-bold bg-red-600 text-white hover:bg-red-700 cursor-pointer">Logout</button>
-          </div>
-        </div>
+          <span class="nav-label">Google<br>Reviews</span>
+        </a>
 
-        <!-- TABLE MANAGEMENT SUB-PAGE -->
-        <div id="adminSubPage-tables" class="admin-sub-page hidden bg-white p-6 rounded-3xl shadow-sm border border-stone-200 space-y-6">
-          <div class="flex flex-col sm:flex-row justify-between items-center gap-4 border-b pb-4">
-            <div>
-              <h3 class="font-serif font-bold text-xl text-stone-900">Restaurant Table Management</h3>
-              <p class="text-xs text-stone-500">Track and toggle table occupancy status in real-time</p>
-            </div>
-            <div class="flex items-center gap-2 w-full sm:w-auto">
-              <input id="newTableNameInput" type="text" placeholder="Table Name (e.g. T4)" class="px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:ring-2 focus:ring-blue-500 outline-none flex-1 sm:flex-none">
-              <button type="button" onclick="addNewTable()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow cursor-pointer whitespace-nowrap">+ Add Table</button>
-            </div>
+        <!-- 2. Contact Us Button (Opens Dial Pad directly) -->
+        <a class="nav-card" id="contactCallBtn" href="tel:+919876543210">
+          <div class="icon-circle">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="#ffffff">
+              <path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 011 1V20a1 1 0 01-1 1C10.07 21 3 13.93 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.46.57 3.58a1 1 0 01-.25 1.01l-2.2 2.2z"/>
+            </svg>
           </div>
-          <div id="tableGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
-        </div>
+          <span class="nav-label">Contact<br>Us</span>
+        </a>
 
-        <!-- SALES REPORT SUB-PAGE -->
-        <div id="adminSubPage-sales" class="admin-sub-page bg-white p-6 rounded-3xl shadow-sm border border-stone-200 space-y-6">
-          <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <h3 class="font-serif font-bold text-xl text-stone-900">Sales Analytics & Revenue</h3>
-            <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
-              <button type="button" onclick="downloadSalesDoc()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow cursor-pointer flex items-center gap-1.5">
-                <i class="fa-solid fa-file-word"></i> Download Word (.doc)
-              </button>
-              <button type="button" onclick="resetSalesReport()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow cursor-pointer">
-                Reset Report
-              </button>
-              <select id="reportFilterType" onchange="renderSalesReport()" class="px-4 py-2 rounded-xl border border-stone-300 text-xs font-bold bg-stone-50 outline-none">
-                <option value="all">All-Time Sales</option>
-                <option value="daily">Today's Sales</option>
-                <option value="monthly">This Month's Sales</option>
-              </select>
-            </div>
+        <!-- 3. Instagram Button -->
+        <a class="nav-card" id="instagramBtn" href="#" target="_blank" rel="noopener noreferrer">
+          <div class="icon-circle">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
+              <defs>
+                <linearGradient id="igGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#feda75"/>
+                  <stop offset="25%" stop-color="#fa7e1e"/>
+                  <stop offset="50%" stop-color="#d62976"/>
+                  <stop offset="75%" stop-color="#962fbf"/>
+                  <stop offset="100%" stop-color="#4f5bd5"/>
+                </linearGradient>
+              </defs>
+              <rect x="2" y="2" width="20" height="20" rx="5" fill="url(#igGrad)"/>
+              <circle cx="12" cy="12" r="4.5" stroke="#ffffff" stroke-width="2"/>
+              <circle cx="17.5" cy="6.5" r="1.3" fill="#ffffff"/>
+            </svg>
           </div>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div class="p-5 bg-stone-50 rounded-2xl border border-stone-200">
-              <span class="text-xs text-stone-500 font-bold uppercase tracking-wider block">Total Orders</span>
-              <span id="reportTotalOrders" class="text-2xl font-black text-stone-900 mt-1 block">0</span>
-            </div>
-            <div class="p-5 bg-emerald-50 rounded-2xl border border-emerald-200">
-              <span class="text-xs text-emerald-700 font-bold uppercase tracking-wider block">Accepted Orders</span>
-              <span id="reportAcceptedOrders" class="text-2xl font-black text-emerald-900 mt-1 block">0</span>
-            </div>
-            <div class="p-5 bg-blue-50 rounded-2xl border border-blue-200">
-              <span class="text-xs text-blue-800 font-bold uppercase tracking-wider block">Total Revenue</span>
-              <span id="reportTotalRevenue" class="text-2xl font-black text-blue-950 mt-1 block">₹0</span>
-            </div>
-          </div>
-          <div class="overflow-x-auto">
-            <table id="salesExcelTable" class="w-full text-left text-xs border-collapse">
-              <thead class="bg-stone-100 text-stone-800 font-bold uppercase border-b border-stone-300">
-                <tr>
-                  <th class="p-2 border border-stone-300">Date</th>
-                  <th class="p-2 border border-stone-300">Order ID</th>
-                  <th class="p-2 border border-stone-300">Customer</th>
-                  <th class="p-2 border border-stone-300">Table</th>
-                  <th class="p-2 border border-stone-300">Phone</th>
-                  <th class="p-2 border border-stone-300">Status</th>
-                  <th class="p-2 border border-stone-300 text-right">Amount</th>
-                </tr>
-              </thead>
-              <tbody id="salesReportTableBody" class="divide-y divide-stone-200"></tbody>
-            </table>
-          </div>
-        </div>
+          <span class="nav-label">Instagram</span>
+        </a>
 
-        <!-- LIVE ORDERS SUB-PAGE -->
-        <div id="adminSubPage-orders" class="admin-sub-page hidden bg-white p-6 rounded-3xl shadow-sm border border-stone-200 space-y-4">
-          <div class="flex justify-between items-center flex-wrap gap-2">
-            <h3 class="font-serif font-bold text-xl text-stone-900">Live Customer Orders</h3>
-            <div class="flex items-center gap-2">
-              <button type="button" onclick="resetLiveOrders()" class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow cursor-pointer">Reset All Orders</button>
-              <button type="button" onclick="renderAdminOrders()" class="px-3 py-1.5 bg-stone-100 text-xs font-bold rounded-xl hover:bg-stone-200 cursor-pointer"><i class="fa-solid fa-rotate mr-1"></i> Refresh</button>
-            </div>
+        <!-- 4. WhatsApp Button -->
+        <a class="nav-card" id="whatsappBtn" href="#" target="_blank" rel="noopener noreferrer">
+          <div class="icon-circle">
+            <svg width="30" height="30" viewBox="0 0 32 32" fill="none">
+              <circle cx="16" cy="16" r="14" fill="#25D366"/>
+              <path fill="#ffffff" d="M22.9 19.3c-.3-.2-2-.9-2.3-1-.3-.1-.5-.2-.7.2-.2.3-.8 1-.9 1.2-.2.2-.3.2-.6.1-.3-.2-1.3-.5-2.5-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.2-.7-1.7-.9-2.3-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.2.2 2.1 3.2 5.1 4.5.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 2-.8 2.2-1.6.3-.8.3-1.4.2-1.6-.1-.1-.3-.2-.6-.4z"/>
+            </svg>
           </div>
-          <div id="ordersList" class="space-y-3"></div>
-        </div>
+          <span class="nav-label">WhatsApp</span>
+        </a>
 
-        <!-- MENU MANAGEMENT SUB-PAGE -->
-        <div id="adminSubPage-menu" class="admin-sub-page hidden bg-white p-6 rounded-3xl shadow-sm border border-stone-200 space-y-6">
-          <h3 id="menuFormTitle" class="font-serif font-bold text-xl text-stone-900">Add New Dish to Menu</h3>
-          <input type="hidden" id="editFoodId" value="">
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div>
-              <label class="block text-xs font-bold text-stone-600 mb-1">Dish Name *</label>
-              <input id="foodName" type="text" placeholder="e.g. Chicken Biryani" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm outline-none">
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-stone-600 mb-1">Price (₹) *</label>
-              <input id="foodPrice" type="number" placeholder="250" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm outline-none">
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-stone-600 mb-1">Category *</label>
-              <input id="foodCategory" type="text" placeholder="Starters / Biryani / Drinks" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm outline-none">
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-stone-600 mb-1">Type *</label>
-              <select id="foodType" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm bg-white outline-none">
-                <option value="Non-Veg">Non-Veg</option>
-                <option value="Veg">Veg</option>
-              </select>
-            </div>
-            <div class="sm:col-span-2">
-              <label class="block text-xs font-bold text-stone-600 mb-1">Image URL</label>
-              <input id="foodImage" type="text" placeholder="https://..." class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm outline-none">
-            </div>
+        <!-- 5. Our Website Button -->
+        <a class="nav-card" id="websiteBtn" href="#" target="_blank" rel="noopener noreferrer">
+          <div class="icon-circle">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="2" y1="12" x2="22" y2="12"/>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
           </div>
-          <div class="flex items-center gap-3">
-            <button type="button" id="saveFoodBtn" onclick="saveFoodItem()" class="bg-blue-600 hover:bg-blue-700 text-white font-extrabold px-6 py-3 rounded-xl text-xs shadow cursor-pointer">
-              + Add Dish to Digital Menu
-            </button>
-            <button type="button" id="cancelEditFoodBtn" onclick="resetFoodForm()" class="hidden bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold px-4 py-3 rounded-xl text-xs cursor-pointer">
-              Cancel Edit
-            </button>
-          </div>
-
-          <div class="pt-6 border-t border-stone-200 space-y-4 max-w-md">
-            <h4 class="font-bold text-stone-800 text-sm">Change Staff Admin Passcode</h4>
-            <div>
-              <label class="block text-xs font-bold text-stone-600 mb-1">New Staff Admin Passcode</label>
-              <input id="adminNewPassInput" type="text" placeholder="Enter new admin passcode" class="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-sm outline-none">
-            </div>
-            <button type="button" onclick="saveAdminPasscodeOnly()" class="py-2.5 px-5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow cursor-pointer">Update Admin Passcode</button>
-          </div>
-
-          <div class="pt-6 border-t border-stone-200 space-y-4">
-            <h4 class="font-bold text-stone-800 text-sm">Manage Existing Menu Items & Availability</h4>
-            <div id="adminMenuList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto pr-2"></div>
-          </div>
-        </div>
+          <span class="nav-label">Our<br>Website</span>
+        </a>
       </div>
-    </section>
-  </main>
 
-  <!-- Footer -->
-  <footer id="mainSiteFooter" class="dark-header text-stone-400 py-4 pb-8 border-t border-amber-500/20 text-xs mt-auto">
-    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-3">
-      <div class="flex items-center gap-2.5">
-        <div class="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0 overflow-hidden">
-          <img id="footerLogoImg" src="" alt="Logo" class="w-full h-full object-cover hidden" onerror="this.classList.add('hidden')">
-          <svg id="footerLogoSvg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"/>
-            <line x1="6" y1="17" x2="18" y2="17"/>
-          </svg>
+      <!-- Thank You & 5 Gold Stars -->
+      <div class="thankyou-section">
+        <div class="thankyou-text">Thankyou</div>
+
+        <div class="stars-row" onclick="document.getElementById('googleReviewBtn').click()">
+          <!-- 5 Glossy Gold Stars -->
+          <svg class="star-icon" viewBox="0 0 36 36"><defs><linearGradient id="sg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ffe27a"/><stop offset="55%" stop-color="#f2b938"/><stop offset="100%" stop-color="#c98b18"/></linearGradient></defs><path fill="url(#sg1)" d="M18 2.5l4.7 9.5 10.5 1.5-7.6 7.4 1.8 10.5L18 26.4l-9.4 5 1.8-10.5-7.6-7.4 10.5-1.5z"/></svg>
+          <svg class="star-icon" viewBox="0 0 36 36"><path fill="url(#sg1)" d="M18 2.5l4.7 9.5 10.5 1.5-7.6 7.4 1.8 10.5L18 26.4l-9.4 5 1.8-10.5-7.6-7.4 10.5-1.5z"/></svg>
+          <svg class="star-icon" viewBox="0 0 36 36"><path fill="url(#sg1)" d="M18 2.5l4.7 9.5 10.5 1.5-7.6 7.4 1.8 10.5L18 26.4l-9.4 5 1.8-10.5-7.6-7.4 10.5-1.5z"/></svg>
+          <svg class="star-icon" viewBox="0 0 36 36"><path fill="url(#sg1)" d="M18 2.5l4.7 9.5 10.5 1.5-7.6 7.4 1.8 10.5L18 26.4l-9.4 5 1.8-10.5-7.6-7.4 10.5-1.5z"/></svg>
+          <svg class="star-icon" viewBox="0 0 36 36"><path fill="url(#sg1)" d="M18 2.5l4.7 9.5 10.5 1.5-7.6 7.4 1.8 10.5L18 26.4l-9.4 5 1.8-10.5-7.6-7.4 10.5-1.5z"/></svg>
         </div>
-        <p id="footerDisplayText" class="text-left">© 2026 Hotel Royal Spice Restaurant. Freshly Served with Love.</p>
+
+        <div class="provided-by" id="providedByText">Provided by Karthik</div>
       </div>
+
     </div>
-  </footer>
 
-  <!-- Application Script -->
+    <!-- Bottom Decorative Waves -->
+    <svg class="wave-bottom" viewBox="0 0 430 120" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="goldWaveBottom" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#c58e22" />
+          <stop offset="50%" stop-color="#f6d365" />
+          <stop offset="100%" stop-color="#d49a26" />
+        </linearGradient>
+      </defs>
+      <!-- Left Gold & Navy Swooshes -->
+      <path d="M0 15 C45 85, 130 92, 215 120 L0 120 Z" fill="url(#goldWaveBottom)" />
+      <path d="M0 32 C38 92, 110 102, 175 120 L0 120 Z" fill="#072247" />
+      <!-- Right Gold & Navy Swooshes -->
+      <path d="M275 120 C335 95, 390 80, 430 62 L430 120 Z" fill="url(#goldWaveBottom)" />
+      <path d="M325 120 C370 104, 405 94, 430 84 L430 120 Z" fill="#072247" />
+    </svg>
+  </div>
+
+  <!-- ================= ALL-IN-ONE CONFIGURATION (ఇక్కడ మార్చుకోండి) ================= -->
   <script>
-    const CONFIG = {
-      databaseURL: "https://royal-bites-default-rtdb.firebaseio.com",
-      phonePeUpiId: "9390141671@ybl",
-      payeeName: "Royal Bites Restaurant"
+    const PORTAL_CONFIG = {
+      // 1. సెషన్ టైమ్ (నిమిషాలలో) - QR స్కాన్ (?scan=1) చేసినప్పుడు ఎంతసేపు పనిచేయాలో ఇవ్వండి (0 = Unlimited)
+      SESSION_MINUTES: 1,
+
+      // 2. లోగో చిత్రం URL (ఖాళీగా ఉంచితే డిఫాల్ట్ లోగో కనిపిస్తుంది)
+      LOGO_URL: "",
+
+      // 3. లోగో మీద క్లిక్ చేస్తే ఎక్కడికి వెళ్ళాలో ఆ లింక్ (ఖాళీగా ఉంచితే క్లిక్ అవ్వదు)
+      LOGO_CLICK_LINK: "https://yourwebsite.com",
+
+      // 4. ఫోన్ నంబర్ (Contact Us నొక్కితే నేరుగా డైల్ ప్యాడ్‌లోకి వెళ్తుంది)
+      PHONE_NUMBER: "+919876543210",
+
+      // 5. Google Reviews లింక్
+      GOOGLE_REVIEW_LINK: "https://g.page/r/YOUR_GOOGLE_REVIEW_LINK/review",
+
+      // 6. Instagram లింక్
+      INSTAGRAM_LINK: "https://instagram.com/your_username",
+
+      // 7. WhatsApp నంబర్ (కంట్రీ కోడ్‌తో, + లేకుండా)
+      WHATSAPP_NUMBER: "919876543210",
+
+      // 8. మీ వెబ్‌సైట్ లింక్
+      WEBSITE_LINK: "https://yourwebsite.com",
+
+      // 9. బటన్ల పొజిషన్లు (1, 2, 3, 4, 5 నంబర్లు మార్చుకుంటే ఆ స్థానంలోకి వెళ్తాయి)
+      POSITIONS: {
+        GOOGLE_REVIEWS: 1,
+        CONTACT_US: 2,
+        INSTAGRAM: 3,
+        WHATSAPP: 4,
+        WEBSITE: 5
+      },
+
+      // 10. క్రింద కనిపించే పేరు
+      PROVIDED_BY: "Provided by Karthik"
     };
 
-    let dbRef = null;
-    try {
-      const firebaseConfig = { databaseURL: CONFIG.databaseURL };
-      if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-      dbRef = firebase.database().ref("royal_bites_restaurant");
-    } catch (e) {
-      console.log("Firebase offline connection mode active");
+    // ================= APPLY SETTINGS & POSITIONS =================
+    const logoEl = document.getElementById("logoContainer");
+    if (PORTAL_CONFIG.LOGO_URL && PORTAL_CONFIG.LOGO_URL.trim() !== "") {
+      logoEl.innerHTML = `<img src="${PORTAL_CONFIG.LOGO_URL.trim()}" alt="Brand Logo">`;
     }
 
-    let foods = [];
-    let cart = JSON.parse(localStorage.getItem("rb_cart")) || [];
-    let orders = [];
-    let customerDeviceOrders = JSON.parse(localStorage.getItem("rb_cust_device_orders")) || [];
-    let currentActiveOrderId = localStorage.getItem("rb_active_order_id") || null;
-    let tables = [];
-    let activeQrs = [];
-    let branding = {
-      brandName: "Hotel Royal Spice",
-      brandTagline: "Restaurant",
-      headerLogoUrl: "",
-      waTitle: "HOTEL ROYAL SPICE - TAX INVOICE",
-      heroBgUrl: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1600&q=80",
-      homeBadge: "Welcome to Royal Dining",
-      homeTitle1: "Good Food",
-      homeTitle2: "Good Mood",
-      homeDesc: "Delicious food, great ambiance and unforgettable moments! Order fresh dishes directly from your table.",
-      footerText: "© 2026 Hotel Royal Spice Restaurant. Freshly Served with Love."
-    };
+    if (PORTAL_CONFIG.LOGO_CLICK_LINK && PORTAL_CONFIG.LOGO_CLICK_LINK.trim() !== "") {
+      logoEl.href = PORTAL_CONFIG.LOGO_CLICK_LINK.trim();
+      logoEl.target = "_blank";
+      logoEl.rel = "noopener noreferrer";
+    } else {
+      logoEl.style.pointerEvents = "none";
+    }
 
-    let selectedCategory = "All";
-    let selectedTypeFilter = "All";
-    let currentTableSession = null;
-    let loggedInRole = null;
+    document.getElementById("contactCallBtn").href = `tel:${PORTAL_CONFIG.PHONE_NUMBER}`;
+    document.getElementById("googleReviewBtn").href = PORTAL_CONFIG.GOOGLE_REVIEW_LINK;
+    document.getElementById("instagramBtn").href = PORTAL_CONFIG.INSTAGRAM_LINK;
+    document.getElementById("whatsappBtn").href = `https://wa.me/${PORTAL_CONFIG.WHATSAPP_NUMBER}`;
+    document.getElementById("websiteBtn").href = PORTAL_CONFIG.WEBSITE_LINK;
+    document.getElementById("providedByText").textContent = PORTAL_CONFIG.PROVIDED_BY;
 
-    const defaultFoods = [
-      { id: 1, name: "Hyderabadi Chicken Dum Biryani", price: 280, category: "Biryani", type: "Non-Veg", image: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=600&q=80", available: true },
-      { id: 2, name: "Mutton Rara Masala", price: 380, category: "Main Course", type: "Non-Veg", image: "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80", available: true },
-      { id: 3, name: "Paneer Butter Masala", price: 240, category: "Main Course", type: "Veg", image: "https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&w=600&q=80", available: true },
-      { id: 4, name: "Crispy Veg Manchuria", price: 180, category: "Starters", type: "Veg", image: "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?auto=format&fit=crop&w=600&q=80", available: true },
-      { id: 5, name: "Tandoori Chicken Platter", price: 420, category: "Starters", type: "Non-Veg", image: "https://images.unsplash.com/photo-1599487488170-d3319028646b?auto=format&fit=crop&w=600&q=80", available: true },
-      { id: 6, name: "Fresh Lime Soda", price: 80, category: "Beverages", type: "Veg", image: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=600&q=80", available: true }
-    ];
+    // బటన్ల పొజిషన్లను సెట్ చేయడం (1 నుండి 5 వరకు)
+    (function applyButtonPositions() {
+      const grid = document.getElementById("actionButtonsGrid");
+      if (!grid || !PORTAL_CONFIG.POSITIONS) return;
 
-    const defaultTables = [
-      { id: "T1", name: "T1", status: "Free" },
-      { id: "T2", name: "T2", status: "Free" },
-      { id: "T3", name: "T3", status: "Free" },
-      { id: "T4", name: "T4", status: "Free" },
-      { id: "T5", name: "T5", status: "Free" },
-      { id: "T6", name: "T6", status: "Free" }
-    ];
+      const items = [
+        { el: document.getElementById("googleReviewBtn"), pos: Number(PORTAL_CONFIG.POSITIONS.GOOGLE_REVIEWS) || 1 },
+        { el: document.getElementById("contactCallBtn"),  pos: Number(PORTAL_CONFIG.POSITIONS.CONTACT_US) || 2 },
+        { el: document.getElementById("instagramBtn"),    pos: Number(PORTAL_CONFIG.POSITIONS.INSTAGRAM) || 3 },
+        { el: document.getElementById("whatsappBtn"),     pos: Number(PORTAL_CONFIG.POSITIONS.WHATSAPP) || 4 },
+        { el: document.getElementById("websiteBtn"),      pos: Number(PORTAL_CONFIG.POSITIONS.WEBSITE) || 5 }
+      ];
 
-    function initFirebaseRealtimeSync() {
-      foods = JSON.parse(localStorage.getItem("rb_foods")) || defaultFoods;
-      tables = JSON.parse(localStorage.getItem("rb_tables")) || defaultTables;
-      activeQrs = JSON.parse(localStorage.getItem("rb_active_qrs")) || [];
-      orders = JSON.parse(localStorage.getItem("rb_orders")) || [];
-      const savedBranding = JSON.parse(localStorage.getItem("rb_branding"));
-      if (savedBranding) branding = savedBranding;
-      applyBranding();
-      renderCategories();
-      renderFood();
-
-      if (!dbRef) return;
-
-      dbRef.child("foods").on("value", (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          foods = Array.isArray(data) ? data.filter(Boolean) : Object.values(data);
-        } else {
-          foods = defaultFoods;
-          dbRef.child("foods").set(defaultFoods);
-        }
-        localStorage.setItem("rb_foods", JSON.stringify(foods));
-        renderCategories();
-        renderFood();
-        if(!document.getElementById("page-admin").classList.contains("hidden")) {
-          renderAdminMenuList();
+      // ఇచ్చిన పొజిషన్ నంబర్ ప్రకారం వరుసగా అమర్చడం
+      items.sort((a, b) => a.pos - b.pos);
+      items.forEach(item => {
+        if (item.el) {
+          item.el.style.order = item.pos;
+          grid.appendChild(item.el);
         }
       });
-
-      dbRef.child("tables").on("value", (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          tables = Array.isArray(data) ? data.filter(Boolean) : Object.values(data);
-        } else {
-          tables = defaultTables;
-          dbRef.child("tables").set(defaultTables);
-        }
-        localStorage.setItem("rb_tables", JSON.stringify(tables));
-        if(!document.getElementById("page-admin").classList.contains("hidden")) {
-          renderAdminTables();
-        }
-      });
-
-      dbRef.child("activeQrs").on("value", (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          activeQrs = Array.isArray(data) ? data.filter(Boolean) : Object.values(data);
-        } else {
-          activeQrs = [];
-        }
-        localStorage.setItem("rb_active_qrs", JSON.stringify(activeQrs));
-        if(!document.getElementById("page-admin").classList.contains("hidden")) {
-          renderActiveTablesQrList();
-        }
-      });
-
-      dbRef.child("orders").on("value", (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          const loadedOrders = [];
-          Object.keys(data).forEach(key => {
-            loadedOrders.push({ firebaseKey: key, ...data[key] });
-          });
-          orders = loadedOrders.reverse();
-        } else {
-          orders = [];
-        }
-        localStorage.setItem("rb_orders", JSON.stringify(orders));
-        mergeCustomerDeviceOrders();
-
-        if(!document.getElementById("page-admin").classList.contains("hidden")) {
-          renderAdminOrders();
-          renderSalesReport();
-        }
-        if(!document.getElementById("page-status").classList.contains("hidden")) {
-          renderOrderStatusTracker();
-        }
-        if(!document.getElementById("page-myorders").classList.contains("hidden")) {
-          renderCustomerMyOrders();
-        }
-      });
-
-      dbRef.child("branding").on("value", (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          branding = data;
-          localStorage.setItem("rb_branding", JSON.stringify(branding));
-          applyBranding();
-        } else {
-          dbRef.child("branding").set(branding);
-        }
-      });
-
-      dbRef.child("settings").on("value", (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          if (data.taxLabel) localStorage.setItem("rb_tax_label", data.taxLabel);
-          if (data.taxRate !== undefined) localStorage.setItem("rb_tax_rate", data.taxRate);
-          if (data.masterPass) localStorage.setItem("rb_master_pass", data.masterPass);
-          if (data.adminPass) localStorage.setItem("rb_admin_pass", data.adminPass);
-          applyBranding();
-        }
-      });
-    }
-
-    function applyBranding() {
-      document.getElementById("headerBrandName").innerText = branding.brandName;
-      document.getElementById("headerBrandTagline").innerText = branding.brandTagline;
-      document.getElementById("homeWelcomeBadge").innerText = branding.homeBadge;
-      document.getElementById("homeHeroTitle1").innerText = branding.homeTitle1;
-      document.getElementById("homeHeroTitle2").innerText = branding.homeTitle2;
-      document.getElementById("homeHeroDesc").innerText = branding.homeDesc;
-      document.getElementById("footerDisplayText").innerText = branding.footerText;
-
-      const logoImg = document.getElementById("headerLogoImg");
-      const logoSvg = document.getElementById("headerLogoSvg");
-      const footerLogoImg = document.getElementById("footerLogoImg");
-      const footerLogoSvg = document.getElementById("footerLogoSvg");
-      if (branding.headerLogoUrl) {
-        logoImg.src = branding.headerLogoUrl;
-        logoImg.classList.remove("hidden");
-        logoSvg.classList.add("hidden");
-        if (footerLogoImg && footerLogoSvg) {
-          footerLogoImg.src = branding.headerLogoUrl;
-          footerLogoImg.classList.remove("hidden");
-          footerLogoSvg.classList.add("hidden");
-        }
-      } else {
-        logoImg.classList.add("hidden");
-        logoSvg.classList.remove("hidden");
-        if (footerLogoImg && footerLogoSvg) {
-          footerLogoImg.classList.add("hidden");
-          footerLogoSvg.classList.remove("hidden");
-        }
-      }
-    }
-
-    function mergeCustomerDeviceOrders() {
-      const localDevOrders = JSON.parse(localStorage.getItem("rb_cust_device_orders")) || [];
-      const globalOrders = JSON.parse(localStorage.getItem("rb_orders")) || [];
-      const mergedMap = new Map();
-      [...globalOrders, ...localDevOrders].forEach(o => {
-        if (o && o.orderId) mergedMap.set(o.orderId, o);
-      });
-      customerDeviceOrders = Array.from(mergedMap.values());
-      localStorage.setItem("rb_cust_device_orders", JSON.stringify(customerDeviceOrders));
-    }
-
-    // STRICT URL ROUTING & PERSISTENT REFRESH POSITION MEMORY
-    function routeFromURL() {
-      const searchStr = (window.location.search || "").toLowerCase();
-      const params = new URLSearchParams(window.location.search);
-
-      const isAdminRoute = params.get("admin") === "1" || params.get("admin") === "true" || searchStr.includes("admin=1") || searchStr.includes("admin=true");
-      const isMainRoute = params.get("main") === "1" || params.get("main") === "true" || searchStr.includes("main=1") || searchStr.includes("main=true");
-      const tableParam = params.get("table");
-
-      // Set persistent mode when an explicit URL parameter is passed, then clean URL
-      if (isAdminRoute) {
-        localStorage.setItem("rb_route_mode", "admin");
-        localStorage.removeItem("rb_table_session");
-        window.history.replaceState({}, document.title, window.location.pathname);
-      } else if (isMainRoute) {
-        localStorage.setItem("rb_route_mode", "main");
-        localStorage.removeItem("rb_table_session");
-        localStorage.removeItem("rb_logged_role");
-        localStorage.setItem("rb_last_viewed_page", "home");
-        window.history.replaceState({}, document.title, window.location.pathname);
-      } else if (tableParam) {
-        let expParam = parseInt(params.get("exp") || "0", 10);
-        currentTableSession = { tableNum: tableParam, expiresAt: expParam };
-        localStorage.setItem("rb_table_session", JSON.stringify(currentTableSession));
-        localStorage.setItem("rb_route_mode", "table");
-        localStorage.removeItem("rb_logged_role");
-        localStorage.setItem("rb_last_viewed_page", "menu");
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
-
-      const header = document.getElementById("mainSiteHeader");
-      const footer = document.getElementById("mainSiteFooter");
-      const whiteBar = document.getElementById("whiteNavBarContainer");
-      const page404 = document.getElementById("page-404");
-      const mainApp = document.getElementById("mainAppContainer");
-
-      const activeMode = localStorage.getItem("rb_route_mode");
-
-      // 1. ADMIN LOGIN ROUTE (?admin=1)
-      if (activeMode === "admin") {
-        if (page404) page404.classList.add("hidden");
-        mainApp.classList.remove("hidden");
-        if (header) header.classList.add("hidden");
-        if (footer) footer.classList.add("hidden");
-        if (whiteBar) whiteBar.classList.add("hidden");
-
-        document.querySelectorAll(".page-section").forEach(s => s.classList.add("hidden"));
-        document.getElementById("page-admin").classList.remove("hidden");
-
-        const savedRole = localStorage.getItem("rb_logged_role");
-        const savedSub = localStorage.getItem("rb_admin_subpage");
-        if (savedRole === "master") {
-          loggedInRole = "master";
-          document.getElementById("loginBox").classList.add("hidden");
-          document.getElementById("masterBox").classList.remove("hidden");
-          document.getElementById("adminBox").classList.add("hidden");
-          switchMasterSubPage(savedSub || "qr");
-        } else if (savedRole === "admin") {
-          loggedInRole = "admin";
-          document.getElementById("loginBox").classList.add("hidden");
-          document.getElementById("masterBox").classList.add("hidden");
-          document.getElementById("adminBox").classList.remove("hidden");
-          document.getElementById("masterSwitchBackBtn").classList.add("hidden");
-          switchAdminSubPage(savedSub || "orders");
-        } else {
-          document.getElementById("loginBox").classList.remove("hidden");
-          document.getElementById("masterBox").classList.add("hidden");
-          document.getElementById("adminBox").classList.add("hidden");
-        }
-        return;
-      }
-
-      // 2. TABLE QR SESSION ROUTE (?table=...)
-      if (activeMode === "table") {
-        const savedTable = JSON.parse(localStorage.getItem("rb_table_session") || "null");
-        if (savedTable) currentTableSession = savedTable;
-
-        if (!currentTableSession || (currentTableSession.expiresAt > 0 && Date.now() > currentTableSession.expiresAt)) {
-          localStorage.removeItem("rb_route_mode");
-          localStorage.removeItem("rb_table_session");
-          if (page404) page404.classList.remove("hidden");
-          mainApp.classList.add("hidden");
-          if (header) header.classList.add("hidden");
-          if (footer) footer.classList.add("hidden");
-          if (whiteBar) whiteBar.classList.add("hidden");
-          return;
-        }
-
-        if (page404) page404.classList.add("hidden");
-        mainApp.classList.remove("hidden");
-        if (header) header.classList.remove("hidden");
-        if (footer) footer.classList.remove("hidden");
-
-        if (currentTableSession && currentTableSession.tableNum) {
-          document.getElementById("tableSessionBadge").classList.remove("hidden");
-          document.getElementById("tableSessionBadge").classList.add("flex");
-          document.getElementById("badgeTableNum").innerText = currentTableSession.tableNum;
-          applyFixedTableNumber();
-        }
-
-        const lastPage = localStorage.getItem("rb_last_viewed_page") || "menu";
-        showPage(lastPage);
-        return;
-      }
-
-      // 3. MAIN WEBSITE ROUTE (?main=1)
-      if (activeMode === "main") {
-        if (page404) page404.classList.add("hidden");
-        mainApp.classList.remove("hidden");
-        if (header) header.classList.remove("hidden");
-        if (footer) footer.classList.remove("hidden");
-        const lastPage = localStorage.getItem("rb_last_viewed_page") || "home";
-        showPage(lastPage);
-        return;
-      }
-
-      // 4. DIRECT BARE LINK -> 404 ERROR
-      if (page404) page404.classList.remove("hidden");
-      mainApp.classList.add("hidden");
-      if (header) header.classList.add("hidden");
-      if (footer) footer.classList.add("hidden");
-      if (whiteBar) whiteBar.classList.add("hidden");
-    }
-
-    function showPage(pageId) {
-      document.querySelectorAll(".page-section").forEach(sec => sec.classList.add("hidden"));
-      const target = document.getElementById("page-" + pageId);
-      if (target) target.classList.remove("hidden");
-
-      if (pageId !== "admin" && pageId !== "expired") {
-        localStorage.setItem("rb_last_viewed_page", pageId);
-      }
-
-      const whiteBar = document.getElementById("whiteNavBarContainer");
-      if (whiteBar) {
-        if (pageId === "home" || pageId === "admin" || pageId === "expired") {
-          whiteBar.classList.add("hidden");
-        } else {
-          whiteBar.classList.remove("hidden");
-        }
-      }
-
-      if (pageId === "menu") renderFood();
-      else if (pageId === "cart") { renderCart(); applyFixedTableNumber(); }
-      else if (pageId === "payment") updatePaymentScreen();
-      else if (pageId === "status") renderOrderStatusTracker();
-      else if (pageId === "myorders") renderCustomerMyOrders();
-
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-
-    function showToast(msg) {
-      const box = document.getElementById("toastBox");
-      const text = document.getElementById("toastText");
-      if (!box || !text) return;
-      text.innerText = msg;
-      box.classList.remove("translate-y-24", "opacity-0");
-      setTimeout(() => {
-        box.classList.add("translate-y-24", "opacity-0");
-      }, 3000);
-    }
-
-    function login() {
-      const val = document.getElementById("passcodeInput").value.trim();
-      const masterPass = localStorage.getItem("rb_master_pass") || "9999";
-      const adminPass = localStorage.getItem("rb_admin_pass") || "1234";
-
-      if (val === masterPass) {
-        loggedInRole = 'master';
-        localStorage.setItem("rb_logged_role", "master");
-        document.getElementById("loginMsg").innerText = "";
-        document.getElementById("passcodeInput").value = "";
-        document.getElementById("loginBox").classList.add("hidden");
-        document.getElementById("masterBox").classList.remove("hidden");
-        document.getElementById("adminBox").classList.add("hidden");
-        switchMasterSubPage('qr');
-        showToast("Logged in as Master Owner!");
-      } else if (val === adminPass) {
-        loggedInRole = 'admin';
-        localStorage.setItem("rb_logged_role", "admin");
-        document.getElementById("loginMsg").innerText = "";
-        document.getElementById("passcodeInput").value = "";
-        document.getElementById("loginBox").classList.add("hidden");
-        document.getElementById("masterBox").classList.add("hidden");
-        document.getElementById("adminBox").classList.remove("hidden");
-        document.getElementById("masterSwitchBackBtn").classList.add("hidden");
-        switchAdminSubPage('orders');
-        showToast("Logged in as Staff Admin!");
-      } else {
-        document.getElementById("loginMsg").innerText = "Invalid passcode! Please try again.";
-      }
-    }
-
-    function logout() {
-      loggedInRole = null;
-      localStorage.removeItem("rb_logged_role");
-      localStorage.removeItem("rb_admin_subpage");
-      document.getElementById("passcodeInput").value = "";
-      document.getElementById("loginMsg").innerText = "";
-      document.getElementById("masterBox").classList.add("hidden");
-      document.getElementById("adminBox").classList.add("hidden");
-      document.getElementById("loginBox").classList.remove("hidden");
-      showToast("Logged out successfully.");
-    }
-
-    function switchToMasterPanel() {
-      loggedInRole = 'master';
-      localStorage.setItem("rb_logged_role", "master");
-      document.getElementById("adminBox").classList.add("hidden");
-      document.getElementById("masterBox").classList.remove("hidden");
-      switchMasterSubPage('qr');
-    }
-
-    function switchMasterSubPage(sub) {
-      localStorage.setItem("rb_admin_subpage", sub);
-      document.querySelectorAll(".master-sub-page").forEach(p => p.classList.add("hidden"));
-      document.querySelectorAll(".master-sub-btn").forEach(b => {
-        b.className = "master-sub-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-blue-900 cursor-pointer";
-      });
-
-      document.getElementById("masterSubPage-" + sub).classList.remove("hidden");
-      const btn = document.getElementById("masterTabBtn-" + sub);
-      if (btn) btn.className = "master-sub-btn px-4 py-2 rounded-xl text-xs font-bold bg-blue-800 text-white shadow cursor-pointer";
-
-      if (sub === 'qr') {
-        document.getElementById("masterTaxLabelInput").value = localStorage.getItem("rb_tax_label") || "Tax";
-        document.getElementById("masterTaxRateInput").value = localStorage.getItem("rb_tax_rate") || "5";
-        renderActiveTablesQrList();
-      } else if (sub === 'branding') {
-        document.getElementById("editBrandName").value = branding.brandName || "";
-        document.getElementById("editBrandTagline").value = branding.brandTagline || "";
-        document.getElementById("editHeaderLogoUrl").value = branding.headerLogoUrl || "";
-        document.getElementById("editWaTitle").value = branding.waTitle || "";
-        document.getElementById("editHeroBgUrl").value = branding.heroBgUrl || "";
-        document.getElementById("editHomeBadge").value = branding.homeBadge || "";
-        document.getElementById("editHomeTitle1").value = branding.homeTitle1 || "";
-        document.getElementById("editHomeTitle2").value = branding.homeTitle2 || "";
-        document.getElementById("editHomeDesc").value = branding.homeDesc || "";
-        document.getElementById("editFooterText").value = branding.footerText || "";
-      }
-    }
-
-    function switchAdminSubPage(sub) {
-      localStorage.setItem("rb_admin_subpage", sub);
-      document.querySelectorAll(".admin-sub-page").forEach(p => p.classList.add("hidden"));
-      document.querySelectorAll(".admin-sub-btn").forEach(b => {
-        b.className = "admin-sub-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-blue-900 cursor-pointer";
-      });
-
-      document.getElementById("adminSubPage-" + sub).classList.remove("hidden");
-      const btn = document.getElementById("adminTabBtn-" + sub);
-      if (btn) btn.className = "admin-sub-btn px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white shadow cursor-pointer";
-
-      if (sub === 'tables') renderAdminTables();
-      else if (sub === 'orders') renderAdminOrders();
-      else if (sub === 'sales') renderSalesReport();
-      else if (sub === 'menu') renderAdminMenuList();
-    }
-
-    function generateTableQR() {
-      const tNum = document.getElementById("tableGenNumber").value.trim();
-      const mins = parseInt(document.getElementById("tableSessionDuration").value || "60", 10);
-      if (!tNum) {
-        showToast("Please enter Table Number/Name!");
-        return;
-      }
-
-      const expTime = Date.now() + (mins * 60 * 1000);
-      const baseUrl = window.location.origin + window.location.pathname;
-      const fullUrl = `${baseUrl}?table=${encodeURIComponent(tNum)}&exp=${expTime}`;
-      const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(fullUrl)}`;
-
-      document.getElementById("tableQRTitle").innerText = `Table ${tNum} (Valid for ${mins} mins)`;
-      document.getElementById("tableQRImg").src = qrSrc;
-      document.getElementById("tableQRUrl").innerText = fullUrl;
-      document.getElementById("downloadTableQrBtn").href = qrSrc;
-      document.getElementById("tableQRResult").classList.remove("hidden");
-
-      const qrEntry = { id: Date.now(), table: tNum, url: fullUrl, expiresAt: expTime, duration: mins };
-      activeQrs = [qrEntry, ...activeQrs.filter(x => x.table !== tNum)];
-      localStorage.setItem("rb_active_qrs", JSON.stringify(activeQrs));
-      if (dbRef) dbRef.child("activeQrs").set(activeQrs);
-      renderActiveTablesQrList();
-      showToast(`QR Code generated for Table ${tNum}!`);
-    }
-
-    function copyTableQRUrl() {
-      const urlText = document.getElementById("tableQRUrl").innerText;
-      const temp = document.createElement("textarea");
-      temp.value = urlText;
-      document.body.appendChild(temp);
-      temp.select();
-      document.execCommand("copy");
-      document.body.removeChild(temp);
-      showToast("Table QR URL copied to clipboard!");
-    }
-
-    function renderActiveTablesQrList() {
-      const list = document.getElementById("activeTablesQrList");
-      if (!list) return;
-      if (activeQrs.length === 0) {
-        list.innerHTML = `<p class="text-xs text-stone-400 italic">No table QR generated yet.</p>`;
-        return;
-      }
-      list.innerHTML = activeQrs.map(q => {
-        const isExp = Date.now() > q.expiresAt;
-        return `
-          <div class="p-3 bg-stone-50 rounded-xl border border-stone-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-xs">
-            <div>
-              <span class="font-bold text-stone-900">Table ${q.table}</span>
-              <span class="ml-2 px-2 py-0.5 rounded-full text-[10px] font-bold ${isExp ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}">
-                ${isExp ? 'Expired' : 'Active (' + q.duration + 'm)'}
-              </span>
-              <p class="text-[11px] text-stone-500 break-all mt-1">${q.url}</p>
-            </div>
-            <div class="flex items-center gap-1.5 shrink-0">
-              <button type="button" onclick="toggleQrSessionStatus(${q.id})" class="px-3 py-1.5 font-bold rounded-lg cursor-pointer ${isExp ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-amber-100 text-amber-800 hover:bg-amber-200'}">
-                ${isExp ? 'Make Active' : 'Expire'}
-              </button>
-              <button type="button" onclick="deleteQrSession(${q.id})" class="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-lg cursor-pointer">
-                <i class="fa-solid fa-trash mr-1"></i> Delete
-              </button>
-            </div>
-          </div>
-        `;
-      }).join("");
-    }
-
-    function toggleQrSessionStatus(id) {
-      const q = activeQrs.find(x => x.id === id);
-      if (q) {
-        const isExp = Date.now() > q.expiresAt;
-        if (isExp) {
-          q.expiresAt = Date.now() + (q.duration * 60 * 1000);
-          showToast(`Table ${q.table} QR session is now Active!`);
-        } else {
-          q.expiresAt = Date.now() - 1000;
-          showToast(`Table ${q.table} QR session expired.`);
-        }
-        localStorage.setItem("rb_active_qrs", JSON.stringify(activeQrs));
-        if (dbRef) dbRef.child("activeQrs").set(activeQrs);
-        renderActiveTablesQrList();
-      }
-    }
-
-    function deleteQrSession(id) {
-      activeQrs = activeQrs.filter(x => x.id !== id);
-      localStorage.setItem("rb_active_qrs", JSON.stringify(activeQrs));
-      if (dbRef) dbRef.child("activeQrs").set(activeQrs);
-      renderActiveTablesQrList();
-      showToast("Table QR session deleted successfully.");
-    }
-
-    function saveMasterTaxSettings() {
-      const label = document.getElementById("masterTaxLabelInput").value.trim() || "Tax";
-      const rate = parseFloat(document.getElementById("masterTaxRateInput").value) || 0;
-      localStorage.setItem("rb_tax_label", label);
-      localStorage.setItem("rb_tax_rate", rate);
-      if (dbRef) dbRef.child("settings").update({ taxLabel: label, taxRate: rate });
-      showToast("Tax settings updated!");
-    }
-
-    function saveNewPasscodes() {
-      const mPass = document.getElementById("masterNewMasterPassInput").value.trim();
-      const aPass = document.getElementById("masterNewPasscodeInput").value.trim();
-      const updates = {};
-      if (mPass) {
-        localStorage.setItem("rb_master_pass", mPass);
-        updates.masterPass = mPass;
-      }
-      if (aPass) {
-        localStorage.setItem("rb_admin_pass", aPass);
-        updates.adminPass = aPass;
-      }
-      if (Object.keys(updates).length > 0 && dbRef) {
-        dbRef.child("settings").update(updates);
-      }
-      document.getElementById("masterNewMasterPassInput").value = "";
-      document.getElementById("masterNewPasscodeInput").value = "";
-      showToast("Passcodes updated successfully!");
-    }
-
-    function saveAdminPasscodeOnly() {
-      const aPass = document.getElementById("adminNewPassInput").value.trim();
-      if (!aPass) {
-        showToast("Please enter a new passcode.");
-        return;
-      }
-      localStorage.setItem("rb_admin_pass", aPass);
-      if (dbRef) dbRef.child("settings").update({ adminPass: aPass });
-      document.getElementById("adminNewPassInput").value = "";
-      showToast("Admin passcode updated!");
-    }
-
-    function saveBrandingSettings() {
-      branding.brandName = document.getElementById("editBrandName").value.trim() || branding.brandName;
-      branding.brandTagline = document.getElementById("editBrandTagline").value.trim() || branding.brandTagline;
-      branding.headerLogoUrl = document.getElementById("editHeaderLogoUrl").value.trim();
-      branding.waTitle = document.getElementById("editWaTitle").value.trim() || branding.waTitle;
-      branding.heroBgUrl = document.getElementById("editHeroBgUrl").value.trim() || branding.heroBgUrl;
-      branding.homeBadge = document.getElementById("editHomeBadge").value.trim() || branding.homeBadge;
-      branding.homeTitle1 = document.getElementById("editHomeTitle1").value.trim() || branding.homeTitle1;
-      branding.homeTitle2 = document.getElementById("editHomeTitle2").value.trim() || branding.homeTitle2;
-      branding.homeDesc = document.getElementById("editHomeDesc").value.trim() || branding.homeDesc;
-      branding.footerText = document.getElementById("editFooterText").value.trim() || branding.footerText;
-
-      localStorage.setItem("rb_branding", JSON.stringify(branding));
-      if (dbRef) dbRef.child("branding").set(branding);
-      applyBranding();
-      showToast("Branding settings saved!");
-    }
-
-    function renderCategories() {
-      const cats = ["All", ...new Set(foods.map(f => f.category))];
-      const bar = document.getElementById("categoryBar");
-      if (!bar) return;
-      bar.innerHTML = cats.map(c => `
-        <button type="button" onclick="selectCategory('${c}')" class="px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${selectedCategory === c ? 'bg-amber-500 text-stone-950 shadow' : 'bg-white text-stone-600 border border-stone-200 hover:bg-stone-50'}">
-          ${c}
-        </button>
-      `).join("");
-    }
-
-    function selectCategory(cat) {
-      selectedCategory = cat;
-      renderCategories();
-      renderFood();
-    }
-
-    function setTypeFilter(type) {
-      selectedTypeFilter = type;
-      document.querySelectorAll(".type-filter-btn").forEach(btn => {
-        btn.className = "type-filter-btn px-3.5 py-1.5 rounded-xl text-xs font-bold bg-stone-100 text-stone-600 border border-stone-200 cursor-pointer";
-      });
-      const activeBtn = document.getElementById("typeBtn-" + type);
-      if (activeBtn) {
-        if (type === 'Veg') activeBtn.className = "type-filter-btn px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 text-white cursor-pointer";
-        else if (type === 'Non-Veg') activeBtn.className = "type-filter-btn px-3.5 py-1.5 rounded-xl text-xs font-bold bg-red-600 text-white cursor-pointer";
-        else activeBtn.className = "type-filter-btn px-3.5 py-1.5 rounded-xl text-xs font-bold bg-stone-900 text-white cursor-pointer";
-      }
-      renderFood();
-    }
-
-    function renderFood() {
-      const searchEl = document.getElementById("searchInput");
-      const query = searchEl ? (searchEl.value || "").toLowerCase().trim() : "";
-      const filtered = foods.filter(f => {
-        const matchesCat = selectedCategory === "All" || f.category.toLowerCase() === selectedCategory.toLowerCase();
-        const matchesType = selectedTypeFilter === "All" || f.type.toLowerCase() === selectedTypeFilter.toLowerCase();
-        const matchesSearch = query === "" || f.name.toLowerCase().includes(query) || f.category.toLowerCase().includes(query);
-        return matchesCat && matchesType && matchesSearch;
-      });
-
-      const grid = document.getElementById("foodGrid");
-      if (!grid) return;
-      if (filtered.length === 0) {
-        grid.innerHTML = `<div class="col-span-full py-16 text-center text-stone-400 text-sm">No dishes found.</div>`;
-        return;
-      }
-
-      grid.innerHTML = filtered.map(f => {
-        const isAvailable = f.available !== false;
-        const inCart = cart.find(item => item.id === f.id);
-        const qty = inCart ? inCart.qty : 0;
-        return `
-          <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow ${!isAvailable ? 'opacity-60 grayscale-[30%]' : ''}">
-            <div class="relative h-44 bg-stone-100 overflow-hidden">
-              <img src="${f.image || 'https://placehold.co/600x400/faf9f6/78350f?text=Dish'}" alt="${f.name}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/600x400/faf9f6/78350f?text=Dish'">
-              <span class="absolute top-2.5 right-2.5 px-2.5 py-1 rounded-lg text-[10px] font-bold ${f.type === 'Veg' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'} shadow">
-                ${f.type}
-              </span>
-              ${!isAvailable ? `
-                <div class="absolute inset-0 bg-stone-950/60 flex items-center justify-center">
-                  <span class="px-3 py-1.5 rounded-xl bg-red-600 text-white font-black text-xs shadow-lg uppercase tracking-wider">Out of Stock</span>
-                </div>
-              ` : ''}
-            </div>
-            <div class="p-4 space-y-2 flex-1 flex flex-col justify-between">
-              <div>
-                <span class="text-[11px] font-bold text-amber-600 uppercase tracking-wider">${f.category}</span>
-                <h3 class="font-serif font-bold text-base text-stone-900 line-clamp-1">${f.name}</h3>
-              </div>
-              <div class="flex items-center justify-between pt-2 border-t border-stone-100">
-                <span class="font-black text-lg text-stone-900">₹${f.price}</span>
-                ${!isAvailable ? `
-                  <span class="text-xs font-bold text-red-600 bg-red-50 px-3 py-1.5 rounded-xl">Not Available</span>
-                ` : (qty === 0 ? `
-                  <button type="button" onclick="addToCart(${f.id})" class="gold-gradient text-stone-950 font-extrabold px-4 py-2 rounded-xl text-xs shadow hover:opacity-95 transition-all cursor-pointer">
-                    + Add
-                  </button>
-                ` : `
-                  <div class="flex items-center gap-2 bg-stone-100 p-1 rounded-xl">
-                    <button type="button" onclick="updateQty(${f.id}, -1)" class="w-7 h-7 bg-white rounded-lg shadow text-stone-800 font-bold flex items-center justify-center text-xs cursor-pointer">-</button>
-                    <span class="font-bold text-xs px-1">${qty}</span>
-                    <button type="button" onclick="updateQty(${f.id}, 1)" class="w-7 h-7 bg-amber-500 rounded-lg shadow text-stone-950 font-bold flex items-center justify-center text-xs cursor-pointer">+</button>
-                  </div>
-                `)}
-              </div>
-            </div>
-          </div>
-        `;
-      }).join("");
-
-      updateStickyCartBar();
-    }
-
-    function addToCart(foodId) {
-      const f = foods.find(x => x.id === foodId);
-      if (!f) return;
-      const existing = cart.find(x => x.id === foodId);
-      if (existing) existing.qty += 1;
-      else cart.push({ id: f.id, name: f.name, price: f.price, type: f.type, qty: 1 });
-      saveCart();
-      renderFood();
-      showToast(f.name + " added to cart!");
-    }
-
-    function updateQty(foodId, change) {
-      const idx = cart.findIndex(x => x.id === foodId);
-      if (idx !== -1) {
-        cart[idx].qty += change;
-        if (cart[idx].qty <= 0) cart.splice(idx, 1);
-      }
-      saveCart();
-      renderFood();
-    }
-
-    function saveCart() {
-      localStorage.setItem("rb_cart", JSON.stringify(cart));
-      updateStickyCartBar();
-    }
-
-    function updateStickyCartBar() {
-      const totalCount = cart.reduce((sum, item) => sum + item.qty, 0);
-      const subTotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-      const bar = document.getElementById("stickyCartBar");
-      const badge = document.getElementById("cartCountBadge");
-      if (badge) badge.innerText = totalCount;
-
-      if (totalCount > 0) {
-        if (bar) { bar.classList.remove("hidden"); bar.classList.add("flex"); }
-        document.getElementById("stickyCartCount").innerText = totalCount;
-        document.getElementById("stickyCartTotal").innerText = "₹" + subTotal;
-      } else {
-        if (bar) { bar.classList.add("hidden"); bar.classList.remove("flex"); }
-      }
-    }
-
-    function renderCart() {
-      const container = document.getElementById("cartItemsContainer");
-      const detailsBox = document.getElementById("checkoutDetailsBox");
-
-      if (cart.length === 0) {
-        container.innerHTML = `
-          <div class="py-16 text-center space-y-3 bg-white rounded-3xl border border-stone-200">
-            <div class="w-16 h-16 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center mx-auto text-2xl">
-              <i class="fa-solid fa-bag-shopping"></i>
-            </div>
-            <h3 class="font-serif font-bold text-xl text-stone-900">Your cart is empty</h3>
-            <p class="text-xs text-stone-500">Add delicious dishes from our menu to place an order.</p>
-            <button type="button" onclick="showPage('menu')" class="gold-gradient text-stone-950 font-extrabold px-6 py-2.5 rounded-xl text-xs shadow cursor-pointer">Explore Menu</button>
-          </div>
-        `;
-        detailsBox.classList.add("hidden");
-        return;
-      }
-
-      container.innerHTML = cart.map(item => `
-        <div class="bg-white p-4 rounded-2xl shadow-sm border border-stone-200 flex items-center justify-between gap-4">
-          <div class="flex-1">
-            <h4 class="font-bold text-stone-900 text-sm">${item.name}</h4>
-            <span class="text-xs text-stone-500">₹${item.price} each</span>
-          </div>
-          <div class="flex items-center gap-3">
-            <div class="flex items-center gap-2 bg-stone-100 p-1 rounded-xl">
-              <button type="button" onclick="updateCartItemQty(${item.id}, -1)" class="w-7 h-7 bg-white rounded-lg shadow text-stone-800 font-bold flex items-center justify-center text-xs cursor-pointer">-</button>
-              <span class="font-bold text-xs px-1">${item.qty}</span>
-              <button type="button" onclick="updateCartItemQty(${item.id}, 1)" class="w-7 h-7 bg-amber-500 rounded-lg shadow text-stone-950 font-bold flex items-center justify-center text-xs cursor-pointer">+</button>
-            </div>
-            <span class="font-black text-sm text-stone-900 w-16 text-right">₹${item.price * item.qty}</span>
-            <button type="button" onclick="removeFromCart(${item.id})" class="text-stone-400 hover:text-red-600 p-2 cursor-pointer"><i class="fa-solid fa-trash text-xs"></i></button>
-          </div>
-        </div>
-      `).join("");
-
-      detailsBox.classList.remove("hidden");
-      calculateCartTotals();
-    }
-
-    function updateCartItemQty(id, change) {
-      const idx = cart.findIndex(x => x.id === id);
-      if (idx !== -1) {
-        cart[idx].qty += change;
-        if (cart[idx].qty <= 0) cart.splice(idx, 1);
-      }
-      saveCart();
-      renderCart();
-    }
-
-    function removeFromCart(id) {
-      cart = cart.filter(x => x.id !== id);
-      saveCart();
-      renderCart();
-    }
-
-    function calculateCartTotals() {
-      const subTotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-      const taxLabel = localStorage.getItem("rb_tax_label") || "Tax";
-      const taxRate = parseFloat(localStorage.getItem("rb_tax_rate")) || 5;
-      const taxAmount = Math.round((subTotal * taxRate) / 100);
-      const grandTotal = subTotal + taxAmount;
-
-      document.getElementById("cartSubTotalAmount").innerText = "₹" + subTotal;
-      document.getElementById("cartTaxLabel").innerText = `${taxLabel} (${taxRate}%):`;
-      document.getElementById("cartTaxAmount").innerText = "₹" + taxAmount;
-      document.getElementById("cartTotalAmount").innerText = "₹" + grandTotal;
-
-      return { subTotal, taxLabel, taxRate, taxAmount, grandTotal };
-    }
-
-    function applyFixedTableNumber() {
-      if (currentTableSession && currentTableSession.tableNum) {
-        const tInput = document.getElementById("custTable");
-        tInput.value = currentTableSession.tableNum;
-        tInput.readOnly = true;
-        document.getElementById("tableLockedLabel").classList.remove("hidden");
-      }
-    }
-
-    function proceedToPayment() {
-      if (cart.length === 0) {
-        showToast("Your cart is empty! Please add items first.");
-        return;
-      }
-
-      const name = document.getElementById("custName").value.trim();
-      const phone = document.getElementById("custPhone").value.trim();
-      const table = document.getElementById("custTable").value.trim();
-
-      if (!name || !phone || !table) {
-        showToast("Please fill in Name, WhatsApp Mobile Number & Table Number!");
-        return;
-      }
-      if (phone.length !== 10 || isNaN(phone)) {
-        showToast("Please enter a valid 10-digit mobile number!");
-        return;
-      }
-
-      showPage('payment');
-    }
-
-    function updatePaymentScreen() {
-      const totals = calculateCartTotals();
-      const name = document.getElementById("custName").value.trim();
-      const table = document.getElementById("custTable").value.trim();
-
-      document.getElementById("payScreenAmount").innerText = "₹" + totals.grandTotal;
-      document.getElementById("payScreenSummary").innerText = `Table ${table} • ${name}`;
-      document.getElementById("upiBtnLabel").innerText = `Pay ₹${totals.grandTotal} with PhonePe / Any UPI App`;
-    }
-
-    function handlePaymentChoice(payMethod) {
-      const placed = placeOrderImmediately(payMethod);
-      if (!placed) return;
-
-      if (payMethod === "UPI") {
-        const totals = calculateCartTotals();
-        const upiUrl = `upi://pay?pa=${CONFIG.phonePeUpiId}&pn=${encodeURIComponent(CONFIG.payeeName)}&am=${totals.grandTotal.toFixed(2)}&cu=INR`;
-        window.location.href = upiUrl;
-      }
-      
-      showPage('status');
-      renderOrderStatusTracker();
-    }
-
-    function placeOrderImmediately(payMethod) {
-      const name = document.getElementById("custName").value.trim();
-      const phone = document.getElementById("custPhone").value.trim();
-      const table = document.getElementById("custTable").value.trim();
-      const totals = calculateCartTotals();
-
-      if (totals.grandTotal <= 0 || cart.length === 0) {
-        showToast("Your cart is empty!");
-        showPage('cart');
+    })();
+
+    // ================= SILENT BACKGROUND SESSION & OWNER CONTROL =================
+    (function initAccessControl() {
+      const KEY = "BP_STATE_V10";
+
+      function isPageReload() {
+        try {
+          const navEntries = performance.getEntriesByType && performance.getEntriesByType("navigation");
+          if (navEntries && navEntries.length > 0 && navEntries[0].type === "reload") {
+            return true;
+          }
+          if (window.performance && window.performance.navigation && window.performance.navigation.type === 1) {
+            return true;
+          }
+        } catch (e) {}
         return false;
       }
 
-      const existingIds = new Set([...orders.map(o => o.orderId), ...customerDeviceOrders.map(o => o.orderId)]);
-      let orderId = "";
-      let attempts = 0;
-      do {
-        const randNum = Math.floor(10000 + Math.random() * 90000);
-        orderId = "#ORD" + randNum;
-        attempts++;
-      } while (existingIds.has(orderId) && attempts < 100);
-
-      const newOrder = {
-        orderId,
-        date: new Date().toLocaleString(),
-        name,
-        phone,
-        table,
-        items: [...cart],
-        subTotal: totals.subTotal,
-        taxLabel: totals.taxLabel,
-        taxRate: totals.taxRate,
-        taxAmount: totals.taxAmount,
-        total: totals.grandTotal,
-        paymentMethod: payMethod,
-        status: "Pending"
-      };
-
-      currentActiveOrderId = orderId;
-      localStorage.setItem("rb_active_order_id", orderId);
-
-      customerDeviceOrders.unshift(newOrder);
-      localStorage.setItem("rb_cust_device_orders", JSON.stringify(customerDeviceOrders));
-
-      orders.unshift(newOrder);
-      localStorage.setItem("rb_orders", JSON.stringify(orders));
-
-      if (dbRef) {
-        dbRef.child("orders").push(newOrder);
+      function readCookie() {
+        try {
+          const match = document.cookie.match(new RegExp("(?:^|; )" + KEY + "=([^;]*)"));
+          if (match) return JSON.parse(decodeURIComponent(match[1]));
+        } catch (e) {}
+        return null;
       }
 
-      cart = [];
-      saveCart();
-      return true;
-    }
+      function getTabState() {
+        // 1. మొదట ప్రస్తుత ట్యాబ్ మెమరీ (window.name / sessionStorage) చెక్ చేయడం
+        try {
+          if (typeof window.name === "string" && window.name.startsWith(KEY + ":")) {
+            return JSON.parse(window.name.slice(KEY.length + 1));
+          }
+        } catch (e) {}
+        try {
+          const s = window.sessionStorage.getItem(KEY);
+          if (s) return JSON.parse(s);
+        } catch (e) {}
 
-    function renderOrderStatusTracker() {
-      mergeCustomerDeviceOrders();
-      const order = orders.find(x => x.orderId === currentActiveOrderId) || customerDeviceOrders[0] || orders[0];
-      if (!order) return;
-
-      document.getElementById("trackOrderId").innerText = order.orderId;
-      document.getElementById("trackTableNum").innerText = order.table;
-      document.getElementById("trackTotal").innerText = "₹" + order.total;
-
-      const title = document.getElementById("statusTitle");
-      const desc = document.getElementById("statusDesc");
-      const icon = document.getElementById("statusIcon");
-      const iconBox = document.getElementById("statusIconBox");
-
-      if (order.status === "Accepted") {
-        title.innerText = "Order Accepted & Preparing!";
-        desc.innerText = "Your order has been accepted by the kitchen. Fresh food is being prepared for your table.";
-        icon.className = "fa-solid fa-utensils";
-        iconBox.className = "w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-4xl animate-bounce";
-      } else if (order.status === "Completed") {
-        title.innerText = "Order Served & Completed";
-        desc.innerText = "Thank you for dining with us! Hope you enjoyed your meal.";
-        icon.className = "fa-solid fa-circle-check";
-        iconBox.className = "w-20 h-20 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto text-4xl";
-      } else if (order.status === "Rejected") {
-        title.innerText = "Order Rejected";
-        desc.innerText = "Sorry, your order could not be accepted at this moment. Please contact the counter.";
-        icon.className = "fa-solid fa-triangle-exclamation";
-        iconBox.className = "w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-4xl";
-      } else {
-        title.innerText = "Pending Approval";
-        desc.innerText = "Your order has been submitted. Waiting for restaurant staff to review and accept your order...";
-        icon.className = "fa-solid fa-clock-rotate-left";
-        iconBox.className = "w-20 h-20 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-4xl animate-pulse";
-      }
-    }
-
-    function renderCustomerMyOrders() {
-      mergeCustomerDeviceOrders();
-      const list = document.getElementById("customerMyOrdersList");
-      const displayOrders = customerDeviceOrders.length > 0 ? customerDeviceOrders : orders;
-
-      if (displayOrders.length === 0) {
-        list.innerHTML = `<div class="py-12 text-center text-stone-400 text-sm bg-white rounded-3xl border border-stone-200">No order history found.</div>`;
-        return;
-      }
-
-      list.innerHTML = displayOrders.map(o => {
-        const liveMatch = orders.find(x => x.orderId === o.orderId);
-        const currentStatus = liveMatch ? liveMatch.status : o.status;
-        return `
-          <div class="bg-white p-6 rounded-3xl shadow-sm border border-stone-200 space-y-4">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b pb-3">
-              <div>
-                <span class="font-mono font-black text-amber-600 text-sm">${o.orderId}</span>
-                <span class="text-xs text-stone-400 block">${o.date}</span>
-              </div>
-              <span class="px-3 py-1 rounded-full text-xs font-bold ${currentStatus === 'Accepted' ? 'bg-emerald-100 text-emerald-700' : currentStatus === 'Completed' ? 'bg-blue-100 text-blue-700' : currentStatus === 'Rejected' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}">
-                ${currentStatus}
-              </span>
-            </div>
-            <div class="space-y-2 text-xs">
-              <div class="flex justify-between font-bold text-stone-700">
-                <span>Table: ${o.table}</span>
-                <span>Customer: ${o.name}</span>
-              </div>
-              <div class="border-t pt-2 space-y-1">
-                ${o.items.map(i => `<div class="flex justify-between text-stone-600"><span>${i.name} x ${i.qty}</span><span>₹${i.price * i.qty}</span></div>`).join("")}
-              </div>
-            </div>
-          </div>
-        `;
-      }).join("");
-    }
-
-    function renderAdminTables() {
-      const grid = document.getElementById("tableGrid");
-      grid.innerHTML = tables.map(t => `
-        <div class="bg-stone-50 p-4 rounded-2xl border border-stone-200 text-center space-y-3">
-          <div class="w-10 h-10 bg-amber-500/20 text-amber-700 rounded-xl flex items-center justify-center mx-auto font-bold text-sm">
-            <i class="fa-solid fa-chair"></i>
-          </div>
-          <div>
-            <h4 class="font-bold text-stone-900 text-base">Table ${t.name}</h4>
-            <span class="text-[11px] font-bold px-2 py-0.5 rounded-full ${t.status === 'Occupied' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}">
-              ${t.status}
-            </span>
-          </div>
-          <div class="flex items-center justify-center gap-1 pt-1">
-            <button type="button" onclick="toggleTableStatus('${t.id}')" class="px-3 py-1.5 rounded-lg text-xs font-bold text-white cursor-pointer ${t.status === 'Occupied' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-600 hover:bg-red-700'}">
-              ${t.status === 'Occupied' ? 'Make Free' : 'Occupy'}
-            </button>
-            <button type="button" onclick="deleteTable('${t.id}')" class="p-1.5 bg-stone-200 hover:bg-stone-300 rounded-lg text-red-600 text-xs cursor-pointer"><i class="fa-solid fa-trash"></i></button>
-          </div>
-        </div>
-      `).join("");
-    }
-
-    function addNewTable() {
-      const name = document.getElementById("newTableNameInput").value.trim();
-      if (!name) {
-        showToast("Please enter a table name!");
-        return;
-      }
-      tables.push({ id: name, name, status: "Free" });
-      localStorage.setItem("rb_tables", JSON.stringify(tables));
-      if (dbRef) dbRef.child("tables").set(tables);
-      document.getElementById("newTableNameInput").value = "";
-      renderAdminTables();
-      showToast("Table " + name + " added!");
-    }
-
-    function toggleTableStatus(id) {
-      const t = tables.find(x => x.id === id);
-      if (!t) return;
-      t.status = t.status === "Occupied" ? "Free" : "Occupied";
-      localStorage.setItem("rb_tables", JSON.stringify(tables));
-      if (dbRef) dbRef.child("tables").set(tables);
-      renderAdminTables();
-      showToast("Table " + t.name + " marked as " + t.status);
-    }
-
-    function deleteTable(id) {
-      tables = tables.filter(x => x.id !== id);
-      localStorage.setItem("rb_tables", JSON.stringify(tables));
-      if (dbRef) dbRef.child("tables").set(tables);
-      renderAdminTables();
-      showToast("Table deleted.");
-    }
-
-    function renderAdminOrders() {
-      const list = document.getElementById("ordersList");
-      if (orders.length === 0) {
-        list.innerHTML = `<div class="py-12 text-center text-stone-400 text-sm">No live orders received yet.</div>`;
-        return;
-      }
-
-      list.innerHTML = orders.map(o => {
-        const fKey = o.firebaseKey || "";
-        const status = o.status || "Pending";
-        const isPending = status === "Pending";
-        const isAccepted = status === "Accepted";
-
-        return `
-          <div class="bg-stone-50 p-5 rounded-2xl border border-stone-200 space-y-3">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b pb-3">
-              <div>
-                <span class="font-mono font-black text-amber-600 text-sm">${o.orderId}</span>
-                <span class="text-xs text-stone-500 ml-2">${o.date}</span>
-              </div>
-              <span class="px-3 py-1 rounded-full text-xs font-bold ${status === 'Accepted' ? 'bg-emerald-100 text-emerald-700' : status === 'Completed' ? 'bg-blue-100 text-blue-700' : status === 'Rejected' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}">
-                ${status}
-              </span>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs font-bold text-stone-700">
-              <div>Customer: <span class="text-stone-900">${o.name}</span></div>
-              <div>Table: <span class="text-stone-900">${o.table}</span></div>
-              <div>Phone: <span class="text-stone-900">${o.phone}</span></div>
-            </div>
-            <div class="border-t pt-2 space-y-1 text-xs">
-              ${o.items.map(i => `<div class="flex justify-between text-stone-600"><span>${i.name} x ${i.qty}</span><span>₹${i.price * i.qty}</span></div>`).join("")}
-            </div>
-            <div class="border-t pt-2 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 text-xs">
-              <span class="font-black text-sm text-stone-900">Total: ₹${o.total} (${o.paymentMethod})</span>
-              <div class="flex items-center gap-1.5 flex-wrap">
-                <button type="button" onclick="printKitchenOrderBill('${o.orderId}')" class="px-3 py-1.5 bg-stone-900 hover:bg-stone-800 text-white font-bold rounded-xl cursor-pointer">
-                  <i class="fa-solid fa-print mr-1"></i> Print Bill (Thermal)
-                </button>
-                <button type="button" ${!isPending ? 'disabled class="px-3 py-1.5 bg-emerald-300 text-white font-bold rounded-xl cursor-not-allowed opacity-60"' : 'onclick="acceptAndSendWhatsAppInvoice(\'' + o.orderId + '\', \'' + fKey + '\')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl cursor-pointer"'}>
-                  <i class="fa-brands fa-whatsapp mr-1"></i> Accept & WhatsApp
-                </button>
-                <button type="button" ${!isAccepted ? 'disabled class="px-3 py-1.5 bg-blue-300 text-white font-bold rounded-xl cursor-not-allowed opacity-60"' : 'onclick="updateOrderStatus(\'' + o.orderId + '\', \'Completed\', \'' + fKey + '\')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl cursor-pointer"'}>
-                  Complete
-                </button>
-                <button type="button" ${!isPending ? 'disabled class="px-3 py-1.5 bg-red-300 text-white font-bold rounded-xl cursor-not-allowed opacity-60"' : 'onclick="updateOrderStatus(\'' + o.orderId + '\', \'Rejected\', \'' + fKey + '\')" class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl cursor-pointer"'}>
-                  Reject
-                </button>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join("");
-    }
-
-    function updateOrderStatus(orderId, newStatus, firebaseKey) {
-      const idx = orders.findIndex(x => x.orderId === orderId);
-      if (idx !== -1) {
-        orders[idx].status = newStatus;
-        localStorage.setItem("rb_orders", JSON.stringify(orders));
-      }
-      if (dbRef && firebaseKey) {
-        dbRef.child("orders").child(firebaseKey).update({ status: newStatus });
-      }
-      renderAdminOrders();
-      renderSalesReport();
-      showToast(`Order ${orderId} marked as ${newStatus}!`);
-    }
-
-    function acceptAndSendWhatsAppInvoice(orderId, firebaseKey) {
-      updateOrderStatus(orderId, "Accepted", firebaseKey);
-      const o = orders.find(x => x.orderId === orderId);
-      if (!o) return;
-
-      const headerTitle = branding.waTitle || "HOTEL ROYAL SPICE - TAX INVOICE";
-      const itemsText = o.items.map(i => `• ${i.name} (${i.qty} x ₹${i.price}) = ₹${i.qty * i.price}`).join("\n");
-      const invoiceMsg = `*${headerTitle}*\n` +
-        `--------------------------------\n` +
-        `*Order ID:* ${o.orderId}\n` +
-        `*Date:* ${o.date}\n` +
-        `*Customer:* ${o.name}\n` +
-        `*Table:* ${o.table}\n` +
-        `--------------------------------\n` +
-        `*ITEMS ORDERED:*\n${itemsText}\n` +
-        `--------------------------------\n` +
-        `Subtotal: ₹${o.subTotal}\n` +
-        `${o.taxLabel || 'Tax'} (${o.taxRate || 5}%): ₹${o.taxAmount}\n` +
-        `*GRAND TOTAL: ₹${o.total}*\n` +
-        `Payment: ${o.paymentMethod}\n` +
-        `--------------------------------\n` +
-        `Thank you for dining with us! 🙏`;
-
-      let cleanPhone = (o.phone || "").replace(/\D/g, "");
-      if (cleanPhone.length === 10) cleanPhone = "91" + cleanPhone;
-      const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(invoiceMsg)}`;
-      window.open(waUrl, "_blank");
-    }
-
-    function printKitchenOrderBill(orderId) {
-      const o = orders.find(x => x.orderId === orderId);
-      if (!o) return;
-
-      const brand = branding.brandName || "HOTEL ROYAL SPICE";
-      const itemsHtml = o.items.map(i => `
-        <div style="display:flex; justify-content:space-between; margin: 3px 0;">
-          <span style="max-width:48%;">${i.name}</span>
-          <span>${i.qty} x ₹${i.price} = ₹${i.qty * i.price}</span>
-        </div>
-      `).join("");
-
-      const receiptHtml = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="UTF-8">
-          <title>Bill_${o.orderId}</title>
-          <style>
-            @page { size: 80mm auto; margin: 2mm; }
-            body { font-family: 'Courier New', monospace; font-size: 11px; color: #000; background: #fff; width: 76mm; margin: 0 auto; padding: 4px; }
-            .center { text-align: center; }
-            .bold { font-weight: bold; }
-            .divider { border-top: 1px dashed #000; margin: 6px 0; }
-            .row { display: flex; justify-content: space-between; margin: 2px 0; }
-            .total-box { border: 1.5px solid #000; padding: 5px 6px; margin-top: 6px; display: flex; justify-content: space-between; font-weight: bold; font-size: 13px; }
-          </style>
-        </head>
-        <body>
-          <div class="center">
-            <div class="bold" style="font-size:14px;">${brand.toUpperCase()}</div>
-            <div style="font-size:9px;">THERMAL TAX INVOICE</div>
-          </div>
-          <div class="divider"></div>
-          <div>Order ID: <span class="bold">${o.orderId}</span></div>
-          <div>Date: ${o.date}</div>
-          <div>Table No: <span class="bold">${o.table}</span></div>
-          <div>Customer: ${o.name}</div>
-          <div>Phone: ${o.phone}</div>
-          <div class="divider"></div>
-          <div class="row bold"><span>ITEM</span><span>QTY x PRICE</span></div>
-          ${itemsHtml}
-          <div class="divider"></div>
-          <div class="row"><span>Subtotal:</span><span>₹${o.subTotal}</span></div>
-          <div class="row"><span>${o.taxLabel || 'Tax'} (${o.taxRate || 5}%):</span><span>₹${o.taxAmount}</span></div>
-          <div class="total-box">
-            <span>GRAND TOTAL:</span>
-            <span>₹${o.total}</span>
-          </div>
-          <div class="divider"></div>
-          <div class="center" style="font-size:10px;">
-            <div>Payment: <span class="bold">${o.paymentMethod}</span></div>
-            <div style="margin-top:5px;" class="bold">*** THANK YOU! VISIT AGAIN ***</div>
-          </div>
-          <script>window.onload = function() { setTimeout(function() { window.print(); }, 200); };<\/script>
-        </body>
-        </html>
-      `;
-
-      const printWin = window.open("", "_blank", "width=380,height=600");
-      if (printWin) {
-        printWin.document.open();
-        printWin.document.write(receiptHtml);
-        printWin.document.close();
-      } else {
-        showToast("Please allow pop-ups to print thermal receipt!");
-      }
-    }
-
-    function resetLiveOrders() {
-      orders = [];
-      localStorage.setItem("rb_orders", JSON.stringify([]));
-      if (dbRef) dbRef.child("orders").remove();
-      renderAdminOrders();
-      renderSalesReport();
-      showToast("All live orders cleared.");
-    }
-
-    function getFilteredSalesOrders() {
-      const filterType = document.getElementById("reportFilterType").value;
-      const now = new Date();
-      return orders.filter(o => {
-        if (filterType === "all") return true;
-        const d = new Date(o.date);
-        if (isNaN(d.getTime())) return true;
-        if (filterType === "daily") return d.toDateString() === now.toDateString();
-        if (filterType === "monthly") return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-        return true;
-      });
-    }
-
-    function renderSalesReport() {
-      const filtered = getFilteredSalesOrders();
-      const accepted = filtered.filter(o => o.status === "Accepted" || o.status === "Completed");
-      const revenue = accepted.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
-
-      document.getElementById("reportTotalOrders").innerText = filtered.length;
-      document.getElementById("reportAcceptedOrders").innerText = accepted.length;
-      document.getElementById("reportTotalRevenue").innerText = "₹" + revenue;
-
-      const tbody = document.getElementById("salesReportTableBody");
-      if (!tbody) return;
-      if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-stone-400">No sales records found for this period.</td></tr>`;
-        return;
-      }
-
-      tbody.innerHTML = filtered.map(o => `
-        <tr>
-          <td class="p-2 border border-stone-300">${o.date}</td>
-          <td class="p-2 border border-stone-300 font-bold">${o.orderId}</td>
-          <td class="p-2 border border-stone-300">${o.name}</td>
-          <td class="p-2 border border-stone-300">${o.table}</td>
-          <td class="p-2 border border-stone-300">${o.phone}</td>
-          <td class="p-2 border border-stone-300 font-bold">${o.status}</td>
-          <td class="p-2 border border-stone-300 text-right font-bold">₹${o.total}</td>
-        </tr>
-      `).join("");
-    }
-
-    function downloadSalesDoc() {
-      const filtered = getFilteredSalesOrders();
-      const accepted = filtered.filter(o => o.status === "Accepted" || o.status === "Completed");
-      const revenue = accepted.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
-      const brand = branding.brandName || "HOTEL ROYAL SPICE";
-
-      const rowsHtml = filtered.map(o => `
-        <tr>
-          <td style="border:1px solid #333; padding:6px;">${o.date}</td>
-          <td style="border:1px solid #333; padding:6px;">${o.orderId}</td>
-          <td style="border:1px solid #333; padding:6px;">${o.name}</td>
-          <td style="border:1px solid #333; padding:6px;">${o.table}</td>
-          <td style="border:1px solid #333; padding:6px;">${o.status}</td>
-          <td style="border:1px solid #333; padding:6px; text-align:right;">₹${o.total}</td>
-        </tr>
-      `).join("");
-
-      const docHtml = `
-        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-        <head><meta charset='utf-8'><title>Sales Report</title></head>
-        <body style="font-family: Arial, sans-serif; padding: 20px;">
-          <h2 style="text-align:center;">${brand.toUpperCase()} - SALES REPORT</h2>
-          <p style="text-align:center; font-size:12px;">Generated: ${new Date().toLocaleString()}</p>
-          <p><strong>Total Orders:</strong> ${filtered.length} | <strong>Accepted:</strong> ${accepted.length} | <strong>Total Revenue:</strong> ₹${revenue}</p>
-          <table style="width:100%; border-collapse:collapse;">
-            <thead>
-              <tr style="background:#f3f4f6;">
-                <th style="border:1px solid #333; padding:6px;">Date</th>
-                <th style="border:1px solid #333; padding:6px;">Order ID</th>
-                <th style="border:1px solid #333; padding:6px;">Customer</th>
-                <th style="border:1px solid #333; padding:6px;">Table</th>
-                <th style="border:1px solid #333; padding:6px;">Status</th>
-                <th style="border:1px solid #333; padding:6px; text-align:right;">Amount</th>
-              </tr>
-            </thead>
-            <tbody>${rowsHtml}</tbody>
-          </table>
-        </body>
-        </html>
-      `;
-
-      const blob = new Blob(['\ufeff', docHtml], { type: 'application/msword' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Sales_Report_${new Date().toISOString().slice(0, 10)}.doc`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      showToast("Sales Report downloaded as Word (.doc)!");
-    }
-
-    function resetSalesReport() {
-      orders = [];
-      localStorage.setItem("rb_orders", JSON.stringify([]));
-      if (dbRef) dbRef.child("orders").remove();
-      renderSalesReport();
-      renderAdminOrders();
-      showToast("Sales report reset.");
-    }
-
-    function renderAdminMenuList() {
-      const list = document.getElementById("adminMenuList");
-      if (!list) return;
-      list.innerHTML = foods.map(f => {
-        const avail = f.available !== false;
-        return `
-          <div class="p-4 bg-stone-50 rounded-2xl border border-stone-200 flex flex-col justify-between gap-3">
-            <div class="flex items-center gap-3">
-              <img src="${f.image || 'https://placehold.co/100x100/faf9f6/78350f?text=Dish'}" class="w-14 h-14 rounded-xl object-cover bg-stone-200" onerror="this.src='https://placehold.co/100x100/faf9f6/78350f?text=Dish'">
-              <div class="flex-1 min-w-0">
-                <h5 class="font-bold text-stone-900 text-sm truncate">${f.name}</h5>
-                <span class="text-xs text-stone-500 block">${f.category} • ₹${f.price}</span>
-                <span class="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${avail ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}">
-                  ${avail ? 'Available' : 'Out of Stock'}
-                </span>
-              </div>
-            </div>
-            <div class="flex items-center gap-1.5 pt-2 border-t border-stone-200 text-xs">
-              <button type="button" onclick="toggleFoodAvailability(${f.id})" class="flex-1 py-1.5 rounded-lg font-bold cursor-pointer ${avail ? 'bg-amber-100 text-amber-800' : 'bg-emerald-600 text-white'}">
-                ${avail ? 'Mark Out' : 'Mark In'}
-              </button>
-              <button type="button" onclick="editFoodItem(${f.id})" class="px-3 py-1.5 bg-blue-100 text-blue-700 font-bold rounded-lg cursor-pointer">Edit</button>
-              <button type="button" onclick="deleteFoodItem(${f.id})" class="px-3 py-1.5 bg-red-100 text-red-700 font-bold rounded-lg cursor-pointer"><i class="fa-solid fa-trash"></i></button>
-            </div>
-          </div>
-        `;
-      }).join("");
-    }
-
-    function saveFoodItem() {
-      const editId = document.getElementById("editFoodId").value;
-      const name = document.getElementById("foodName").value.trim();
-      const price = parseFloat(document.getElementById("foodPrice").value);
-      const category = document.getElementById("foodCategory").value.trim();
-      const type = document.getElementById("foodType").value;
-      const image = document.getElementById("foodImage").value.trim();
-
-      if (!name || isNaN(price) || !category) {
-        showToast("Please fill Dish Name, Price & Category!");
-        return;
-      }
-
-      if (editId) {
-        const idx = foods.findIndex(x => String(x.id) === String(editId));
-        if (idx !== -1) {
-          foods[idx] = { ...foods[idx], name, price, category, type, image };
+        // 2. మొబైల్ బ్రౌజర్‌లో Refresh చేసినప్పుడు ట్యాబ్ మెమరీ పోతే, Reload అని నిర్ధారించుకుని బ్యాకప్ నుండి తీసుకోవడం
+        if (isPageReload()) {
+          try {
+            const ls = window.localStorage.getItem(KEY);
+            if (ls) return JSON.parse(ls);
+          } catch (e) {}
+          const ck = readCookie();
+          if (ck) return ck;
         }
-        showToast("Dish updated successfully!");
-      } else {
-        const newId = foods.length > 0 ? Math.max(...foods.map(x => Number(x.id) || 0)) + 1 : 1;
-        foods.push({ id: newId, name, price, category, type, image, available: true });
-        showToast("New dish added to menu!");
+
+        return null;
       }
 
-      localStorage.setItem("rb_foods", JSON.stringify(foods));
-      if (dbRef) dbRef.child("foods").set(foods);
-      resetFoodForm();
-      renderAdminMenuList();
-      renderCategories();
-      renderFood();
-    }
+      function setTabState(obj) {
+        const serialized = JSON.stringify(obj);
+        try { window.name = KEY + ":" + serialized; } catch (e) {}
+        try { window.sessionStorage.setItem(KEY, serialized); } catch (e) {}
+        try { window.localStorage.setItem(KEY, serialized); } catch (e) {}
+        try {
+          document.cookie = KEY + "=" + encodeURIComponent(serialized) + "; path=/; SameSite=Lax";
+        } catch (e) {}
+      }
 
-    function editFoodItem(id) {
-      const f = foods.find(x => x.id === id);
-      if (!f) return;
-      document.getElementById("editFoodId").value = f.id;
-      document.getElementById("foodName").value = f.name;
-      document.getElementById("foodPrice").value = f.price;
-      document.getElementById("foodCategory").value = f.category;
-      document.getElementById("foodType").value = f.type;
-      document.getElementById("foodImage").value = f.image || "";
-      document.getElementById("menuFormTitle").innerText = "Edit Dish Details";
-      document.getElementById("saveFoodBtn").innerText = "Update Dish";
-      document.getElementById("cancelEditFoodBtn").classList.remove("hidden");
-    }
+      function clearAllAndLock() {
+        try { window.name = ""; } catch (e) {}
+        try { window.sessionStorage.removeItem(KEY); } catch (e) {}
+        try { window.localStorage.removeItem(KEY); } catch (e) {}
+        try {
+          document.cookie = KEY + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        } catch (e) {}
+        try {
+          if (window.history && window.history.replaceState) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
+        } catch (e) {}
+        document.getElementById("mainAppContainer").style.display = "none";
+        document.getElementById("expiredOverlay").style.display = "flex";
+      }
 
-    function resetFoodForm() {
-      document.getElementById("editFoodId").value = "";
-      document.getElementById("foodName").value = "";
-      document.getElementById("foodPrice").value = "";
-      document.getElementById("foodCategory").value = "";
-      document.getElementById("foodImage").value = "";
-      document.getElementById("menuFormTitle").innerText = "Add New Dish to Menu";
-      document.getElementById("saveFoodBtn").innerText = "+ Add Dish to Digital Menu";
-      document.getElementById("cancelEditFoodBtn").classList.add("hidden");
-    }
+      function hideQueryParam() {
+        try {
+          if (window.history && window.history.replaceState) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
+        } catch (e) {}
+      }
 
-    function toggleFoodAvailability(id) {
-      const f = foods.find(x => x.id === id);
-      if (!f) return;
-      f.available = f.available === false ? true : false;
-      localStorage.setItem("rb_foods", JSON.stringify(foods));
-      if (dbRef) dbRef.child("foods").set(foods);
-      renderAdminMenuList();
-      renderFood();
-      showToast(f.name + (f.available ? " is now Available" : " marked Out of Stock"));
-    }
+      const rawSearch = window.location.search || "";
+      const urlParams = new URLSearchParams(rawSearch);
 
-    function deleteFoodItem(id) {
-      foods = foods.filter(x => x.id !== id);
-      localStorage.setItem("rb_foods", JSON.stringify(foods));
-      if (dbRef) dbRef.child("foods").set(foods);
-      renderAdminMenuList();
-      renderFood();
-      showToast("Dish removed from menu.");
-    }
+      const isMainAccess = urlParams.get("main") === "1" || /(?:^\?|&)main=1(?:&|$)/i.test(rawSearch);
+      const isScanned = urlParams.get("scan") === "1" || /(?:^\?|&)scan=1(?:&|$)/i.test(rawSearch);
 
-    window.addEventListener("DOMContentLoaded", () => {
-      initFirebaseRealtimeSync();
-      routeFromURL();
-    });
+      // 1. ?main=1 నొక్కితే ఆ ట్యాబ్ ఉన్నంతవరకు అన్‌లిమిటెడ్‌గా ఓపెన్ అవుతుంది (Refresh చేసినా పోదు)
+      if (isMainAccess) {
+        setTabState({ mode: "main" });
+        hideQueryParam();
+        return;
+      }
+
+      // 2. ?scan=1 నొక్కితే కొత్తగా టైమర్ మొదలవుతుంది మరియు పైన లింక్ నుండి ?scan=1 మాయమవుతుంది
+      if (isScanned) {
+        const minutes = Number(PORTAL_CONFIG.SESSION_MINUTES);
+        const exp = (isNaN(minutes) || minutes <= 0)
+          ? (Date.now() + 100 * 365 * 24 * 60 * 60 * 1000)
+          : (Date.now() + minutes * 60 * 1000);
+        setTabState({ mode: "scan", exp: exp });
+        hideQueryParam();
+      }
+
+      // 3. అదే ట్యాబ్‌లో Refresh చేసినప్పుడు ?main=1 లేదా ?scan=1 స్థితిని కొనసాగించడం
+      const state = getTabState();
+
+      if (state && state.mode === "main") {
+        setTabState(state);
+        return;
+      }
+
+      if (state && state.mode === "scan" && state.exp > 0) {
+        if (Date.now() >= state.exp) {
+          clearAllAndLock();
+          return;
+        }
+        setTabState(state);
+        const bgTimer = setInterval(() => {
+          if (Date.now() >= state.exp) {
+            clearInterval(bgTimer);
+            clearAllAndLock();
+          }
+        }, 500);
+        return;
+      }
+
+      // 4. మామూలు లింక్ (కొత్త ట్యాబ్‌లో లేదా కాపీ చేసిన లింక్ ఓపెన్ చేస్తే) అస్సలు ఓపెన్ అవ్వదు!
+      clearAllAndLock();
+    })();
   </script>
+
 </body>
 </html>
