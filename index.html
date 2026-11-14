@@ -501,33 +501,44 @@
 
     // ================= SILENT BACKGROUND SESSION & OWNER CONTROL =================
     (function initAccessControl() {
-      const EXPIRY_KEY = "bp_tab_session_expiry_v3";
+      const STORAGE_PREFIX = "BP_TAB_STATE_V4:";
 
-      // Safe SessionStorage Helpers (Only lives until the browser tab is closed)
-      let memStorage = {};
-      function setTabStore(key, val) {
+      // window.name ప్రతి బ్రౌజర్ ట్యాబ్‌కు ప్రత్యేకంగా ఉంటుంది:
+      // 1) ట్యాబ్ రీఫ్రెష్ (Refresh/Reload) చేసినా డేటా పోదు (మొబైల్‌లో కూడా 100% పనిచేస్తుంది).
+      // 2) ట్యాబ్ క్లోజ్ చేయగానే ఆటోమేటిక్‌గా చెరిగిపోతుంది (కొత్త ట్యాబ్‌లో ఉండదు).
+      function setTabState(val) {
         try {
-          window.sessionStorage.setItem(key, val);
-        } catch (e) {
-          memStorage[key] = val;
-        }
-      }
-      function getTabStore(key) {
+          window.name = STORAGE_PREFIX + val;
+        } catch (e) {}
         try {
-          return window.sessionStorage.getItem(key);
-        } catch (e) {
-          return memStorage[key] || null;
-        }
-      }
-      function removeTabStore(key) {
-        try {
-          window.sessionStorage.removeItem(key);
-        } catch (e) {
-          delete memStorage[key];
-        }
+          window.sessionStorage.setItem("bp_tab_v4", val);
+        } catch (e) {}
       }
 
-      // పాత localStorage లో ఏమైనా సేవ్ అయి ఉంటే దాన్ని పూర్తిగా క్లియర్ చేయడం
+      function getTabState() {
+        try {
+          if (typeof window.name === "string" && window.name.indexOf(STORAGE_PREFIX) === 0) {
+            return window.name.slice(STORAGE_PREFIX.length);
+          }
+        } catch (e) {}
+        try {
+          return window.sessionStorage.getItem("bp_tab_v4");
+        } catch (e) {}
+        return null;
+      }
+
+      function clearTabState() {
+        try {
+          if (typeof window.name === "string" && window.name.indexOf(STORAGE_PREFIX) === 0) {
+            window.name = "";
+          }
+        } catch (e) {}
+        try {
+          window.sessionStorage.removeItem("bp_tab_v4");
+        } catch (e) {}
+      }
+
+      // పాత localStorage ఏమైనా ఉంటే క్లియర్ చేయడం
       try {
         window.localStorage.removeItem("bp_owner_unlimited_v2");
       } catch (e) {}
@@ -541,20 +552,20 @@
       const isScanned = urlParams.get("scan") === "1" || /(?:^\?|&)scan=1(?:&|$)/i.test(rawSearch);
 
       function lockPortal() {
-        removeTabStore(EXPIRY_KEY);
+        clearTabState();
         document.getElementById("mainAppContainer").style.display = "none";
         document.getElementById("expiredOverlay").style.display = "flex";
       }
 
-      // 1. ?main=1 నొక్కినప్పుడు ఆ ట్యాబ్ క్లోజ్ చేసేంతవరకు అన్‌లిమిటెడ్‌గా ఉంటుంది
+      // 1. ?main=1 నొక్కినప్పుడు ఆ ట్యాబ్ ఉన్నంతవరకు అన్‌లిమిటెడ్‌గా ఉంటుంది (Refresh చేసినా పోదు)
       if (isMainAccess) {
-        setTabStore(EXPIRY_KEY, "UNLIMITED");
+        setTabState("UNLIMITED");
         return;
       }
 
-      // 2. ?scan=1 నొక్కినప్పుడు (గతంలో అదే ట్యాబ్‌లో main ఉన్నా సరే) కొత్తగా టైమర్ మొదలవుతుంది
+      // 2. ?scan=1 నొక్కినప్పుడు కొత్తగా టైమర్ మొదలవుతుంది
       if (isScanned) {
-        // URL నుండి ?scan=1 ను హైడ్ చేయడం
+        // URL నుండి ?scan=1 ను హైడ్ చేయడం (ఇప్పుడు Refresh చేసినా టైమర్ నిలిచి ఉంటుంది)
         try {
           if (window.history && window.history.replaceState) {
             urlParams.delete("scan");
@@ -566,23 +577,23 @@
 
         const minutes = Number(PORTAL_CONFIG.SESSION_MINUTES);
         if (isNaN(minutes) || minutes <= 0) {
-          setTabStore(EXPIRY_KEY, "UNLIMITED");
+          setTabState("UNLIMITED");
           return;
         } else {
           const newExpiry = Date.now() + minutes * 60 * 1000;
-          setTabStore(EXPIRY_KEY, newExpiry.toString());
+          setTabState(newExpiry.toString());
         }
       }
 
-      const savedExpiry = getTabStore(EXPIRY_KEY);
-      if (savedExpiry === "UNLIMITED") {
+      const savedState = getTabState();
+      if (savedState === "UNLIMITED") {
         return;
       }
 
       const now = Date.now();
-      const expiryTime = parseInt(savedExpiry || "0", 10);
+      const expiryTime = parseInt(savedState || "0", 10);
 
-      // 3. ట్యాబ్ క్లోజ్ చేసి కొత్త ట్యాబ్‌లో మామూలు లింక్ నొక్కినా లేదా టైమ్ అయిపోయినా లాక్ అవుతుంది
+      // 3. కొత్త ట్యాబ్‌లో మామూలు లింక్ నొక్కినా లేదా టైమ్ అయిపోయినా లాక్ అవుతుంది
       if (!expiryTime || now >= expiryTime) {
         lockPortal();
         return;
@@ -594,7 +605,7 @@
           clearInterval(bgTimer);
           lockPortal();
         }
-      }, 1000);
+      }, 500);
     })();
   </script>
 
