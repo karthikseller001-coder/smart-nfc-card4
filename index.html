@@ -419,7 +419,7 @@
   <script>
     const PORTAL_CONFIG = {
       // 1. సెషన్ టైమ్ (నిమిషాలలో) - QR స్కాన్ (?scan=1) చేసినప్పుడు ఎంతసేపు పనిచేయాలో ఇవ్వండి (0 = Unlimited)
-      SESSION_MINUTES: 5,
+      SESSION_MINUTES: 1,
 
       // 2. లోగో చిత్రం URL (ఖాళీగా ఉంచితే డిఫాల్ట్ లోగో కనిపిస్తుంది)
       LOGO_URL: "",
@@ -511,13 +511,12 @@
         try { window.sessionStorage.removeItem(SCAN_KEY); } catch (e) {}
         try {
           if (window.history && window.history.replaceState) {
-            window.history.replaceState({}, document.title, window.location.pathname + "#owner");
+            window.history.replaceState({}, document.title, window.location.pathname);
           }
         } catch (e) {}
       }
 
       function isOwnerPermanent() {
-        try { if ((window.location.hash || "") === "#owner") return true; } catch (e) {}
         try { if (window.localStorage.getItem(OWNER_KEY) === "1") return true; } catch (e) {}
         try { if (window.sessionStorage.getItem(OWNER_KEY) === "1") return true; } catch (e) {}
         return false;
@@ -529,19 +528,12 @@
         try { window.sessionStorage.setItem(SCAN_KEY, val); } catch (e) {}
         try {
           if (window.history && window.history.replaceState) {
-            window.history.replaceState({}, document.title, window.location.pathname + "#t=" + val);
+            window.history.replaceState({}, document.title, window.location.pathname);
           }
         } catch (e) {}
       }
 
       function getScanExpiry() {
-        try {
-          const h = window.location.hash || "";
-          if (h.indexOf("#t=") === 0) {
-            const t = parseInt(h.slice(3), 10);
-            if (t > 0) return t;
-          }
-        } catch (e) {}
         try {
           const s = parseInt(window.sessionStorage.getItem(SCAN_KEY) || "0", 10);
           if (s > 0) return s;
