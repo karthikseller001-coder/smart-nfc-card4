@@ -501,30 +501,71 @@
 
     // ================= SILENT BACKGROUND SESSION & OWNER CONTROL =================
     (function initAccessControl() {
-      const PREFIX = "BP_STATE_V9:";
+      const KEY = "BP_STATE_V10";
+
+      function isPageReload() {
+        try {
+          const navEntries = performance.getEntriesByType && performance.getEntriesByType("navigation");
+          if (navEntries && navEntries.length > 0 && navEntries[0].type === "reload") {
+            return true;
+          }
+          if (window.performance && window.performance.navigation && window.performance.navigation.type === 1) {
+            return true;
+          }
+        } catch (e) {}
+        return false;
+      }
+
+      function readCookie() {
+        try {
+          const match = document.cookie.match(new RegExp("(?:^|; )" + KEY + "=([^;]*)"));
+          if (match) return JSON.parse(decodeURIComponent(match[1]));
+        } catch (e) {}
+        return null;
+      }
 
       function getTabState() {
+        // 1. మొదట ప్రస్తుత ట్యాబ్ మెమరీ (window.name / sessionStorage) చెక్ చేయడం
         try {
-          if (typeof window.name === "string" && window.name.startsWith(PREFIX)) {
-            return JSON.parse(window.name.slice(PREFIX.length));
+          if (typeof window.name === "string" && window.name.startsWith(KEY + ":")) {
+            return JSON.parse(window.name.slice(KEY.length + 1));
           }
         } catch (e) {}
         try {
-          const s = window.sessionStorage.getItem("BP_BACKUP_V9");
+          const s = window.sessionStorage.getItem(KEY);
           if (s) return JSON.parse(s);
         } catch (e) {}
+
+        // 2. మొబైల్ బ్రౌజర్‌లో Refresh చేసినప్పుడు ట్యాబ్ మెమరీ పోతే, Reload అని నిర్ధారించుకుని బ్యాకప్ నుండి తీసుకోవడం
+        if (isPageReload()) {
+          try {
+            const ls = window.localStorage.getItem(KEY);
+            if (ls) return JSON.parse(ls);
+          } catch (e) {}
+          const ck = readCookie();
+          if (ck) return ck;
+        }
+
         return null;
       }
 
       function setTabState(obj) {
         const serialized = JSON.stringify(obj);
-        try { window.name = PREFIX + serialized; } catch (e) {}
-        try { window.sessionStorage.setItem("BP_BACKUP_V9", serialized); } catch (e) {}
+        try { window.name = KEY + ":" + serialized; } catch (e) {}
+        try { window.sessionStorage.setItem(KEY, serialized); } catch (e) {}
+        try { window.localStorage.setItem(KEY, serialized); } catch (e) {}
+        try {
+          document.cookie = KEY + "=" + encodeURIComponent(serialized) + "; path=/; SameSite=Lax";
+        } catch (e) {}
       }
 
       function clearAllAndLock() {
         try { window.name = ""; } catch (e) {}
-        try { window.sessionStorage.removeItem("BP_BACKUP_V9"); } catch (e) {}
+        try { window.sessionStorage.removeItem(KEY); } catch (e) {}
+        try { window.localStorage.removeItem(KEY); } catch (e) {}
+        try {
+          document.cookie = KEY + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        } catch (e) {}
         try {
           if (window.history && window.history.replaceState) {
             window.history.replaceState({}, document.title, window.location.pathname);
@@ -569,6 +610,7 @@
       const state = getTabState();
 
       if (state && state.mode === "main") {
+        setTabState(state);
         return;
       }
 
@@ -577,6 +619,7 @@
           clearAllAndLock();
           return;
         }
+        setTabState(state);
         const bgTimer = setInterval(() => {
           if (Date.now() >= state.exp) {
             clearInterval(bgTimer);
