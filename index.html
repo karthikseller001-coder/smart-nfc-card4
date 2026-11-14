@@ -203,6 +203,15 @@
       letter-spacing: 0.4px;
     }
 
+    .version-text {
+      font-size: 8px;
+      font-weight: 500;
+      color: var(--navy);
+      opacity: 0.6;
+      margin-top: 2px;
+      letter-spacing: 0.3px;
+    }
+
     /* Session Expired Lock Screen */
     .session-expired-overlay {
       display: none;
@@ -393,6 +402,7 @@
         </div>
 
         <div class="provided-by" id="providedByText">Provided by Karthik</div>
+        <div class="version-text" id="versionText">Type your version</div>
       </div>
 
     </div>
@@ -452,7 +462,10 @@
       },
 
       // 10. క్రింద కనిపించే పేరు
-      PROVIDED_BY: "Provided by Karthik"
+      PROVIDED_BY: "Provided by Karthik",
+
+      // 11. వెర్షన్ కోడ్ (చిన్న అక్షరాలతో క్రింద కనిపిస్తుంది)
+      VERSION_TEXT: "card number -1"
     };
 
     // ================= APPLY SETTINGS & POSITIONS =================
@@ -475,6 +488,7 @@
     document.getElementById("whatsappBtn").href = `https://wa.me/${PORTAL_CONFIG.WHATSAPP_NUMBER}`;
     document.getElementById("websiteBtn").href = PORTAL_CONFIG.WEBSITE_LINK;
     document.getElementById("providedByText").textContent = PORTAL_CONFIG.PROVIDED_BY;
+    document.getElementById("versionText").textContent = PORTAL_CONFIG.VERSION_TEXT;
 
     // బటన్ల పొజిషన్లను సెట్ చేయడం (1 నుండి 5 వరకు)
     (function applyButtonPositions() {
