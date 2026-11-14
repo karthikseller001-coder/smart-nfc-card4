@@ -501,53 +501,24 @@
 
     // ================= SILENT BACKGROUND SESSION & OWNER CONTROL =================
     (function initAccessControl() {
-      const OWNER_KEY = "BP_OWNER_PERM_V7";
-      const SCAN_KEY = "BP_SCAN_EXP_V7";
+      const OWNER_TAB_KEY = "BP_OWNER_TAB_V8";
+      const SCAN_TAB_KEY = "BP_SCAN_TAB_V8";
 
-      function setOwnerPermanent() {
-        try { window.localStorage.setItem(OWNER_KEY, "1"); } catch (e) {}
-        try { window.sessionStorage.setItem(OWNER_KEY, "1"); } catch (e) {}
-        try { window.localStorage.removeItem(SCAN_KEY); } catch (e) {}
-        try { window.sessionStorage.removeItem(SCAN_KEY); } catch (e) {}
+      function clearAllAndLock() {
+        try { window.sessionStorage.removeItem(OWNER_TAB_KEY); } catch (e) {}
+        try { window.sessionStorage.removeItem(SCAN_TAB_KEY); } catch (e) {}
+        try { window.localStorage.removeItem("BP_OWNER_PERM_V7"); } catch (e) {}
+        try { window.localStorage.removeItem("BP_SCAN_EXP_V7"); } catch (e) {}
         try {
           if (window.history && window.history.replaceState) {
             window.history.replaceState({}, document.title, window.location.pathname);
           }
         } catch (e) {}
+        document.getElementById("mainAppContainer").style.display = "none";
+        document.getElementById("expiredOverlay").style.display = "flex";
       }
 
-      function isOwnerPermanent() {
-        try { if (window.localStorage.getItem(OWNER_KEY) === "1") return true; } catch (e) {}
-        try { if (window.sessionStorage.getItem(OWNER_KEY) === "1") return true; } catch (e) {}
-        return false;
-      }
-
-      function setScanExpiry(expTime) {
-        const val = expTime.toString();
-        try { window.localStorage.setItem(SCAN_KEY, val); } catch (e) {}
-        try { window.sessionStorage.setItem(SCAN_KEY, val); } catch (e) {}
-        try {
-          if (window.history && window.history.replaceState) {
-            window.history.replaceState({}, document.title, window.location.pathname);
-          }
-        } catch (e) {}
-      }
-
-      function getScanExpiry() {
-        try {
-          const s = parseInt(window.sessionStorage.getItem(SCAN_KEY) || "0", 10);
-          if (s > 0) return s;
-        } catch (e) {}
-        try {
-          const l = parseInt(window.localStorage.getItem(SCAN_KEY) || "0", 10);
-          if (l > 0) return l;
-        } catch (e) {}
-        return 0;
-      }
-
-      function clearScanExpiry() {
-        try { window.localStorage.removeItem(SCAN_KEY); } catch (e) {}
-        try { window.sessionStorage.removeItem(SCAN_KEY); } catch (e) {}
+      function hideQueryParam() {
         try {
           if (window.history && window.history.replaceState) {
             window.history.replaceState({}, document.title, window.location.pathname);
@@ -561,52 +532,54 @@
       const isMainAccess = urlParams.get("main") === "1" || /(?:^\?|&)main=1(?:&|$)/i.test(rawSearch);
       const isScanned = urlParams.get("scan") === "1" || /(?:^\?|&)scan=1(?:&|$)/i.test(rawSearch);
 
-      function lockPortal() {
-        clearScanExpiry();
-        document.getElementById("mainAppContainer").style.display = "none";
-        document.getElementById("expiredOverlay").style.display = "flex";
-      }
-
-      // 1. ?main=1 నొక్కినప్పుడు పర్మనెంట్‌గా సేవ్ అవుతుంది (టైమర్ ఉండదు, రీఫ్రెష్ చేసినా పోదు)
+      // 1. ?main=1 నొక్కితే ఆ ట్యాబ్ ఉన్నంతవరకు అన్‌లిమిటెడ్‌గా ఓపెన్ అవుతుంది (Refresh చేసినా పోదు)
       if (isMainAccess) {
-        setOwnerPermanent();
+        try { window.sessionStorage.removeItem(SCAN_TAB_KEY); } catch (e) {}
+        try { window.sessionStorage.setItem(OWNER_TAB_KEY, "1"); } catch (e) {}
+        hideQueryParam();
         return;
       }
 
-      // 2. ?scan=1 నొక్కినప్పుడు కొత్తగా టైమర్ మొదలవుతుంది (రీఫ్రెష్ చేసినా టైమ్ అయ్యే వరకు పోదు)
+      // 2. ?scan=1 నొక్కితే కొత్తగా టైమర్ మొదలవుతుంది
       if (isScanned) {
+        try { window.sessionStorage.removeItem(OWNER_TAB_KEY); } catch (e) {}
         const minutes = Number(PORTAL_CONFIG.SESSION_MINUTES);
-        if (isNaN(minutes) || minutes <= 0) {
-          setScanExpiry(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000);
-        } else {
-          setScanExpiry(Date.now() + minutes * 60 * 1000);
-        }
+        const exp = (isNaN(minutes) || minutes <= 0)
+          ? (Date.now() + 100 * 365 * 24 * 60 * 60 * 1000)
+          : (Date.now() + minutes * 60 * 1000);
+        try { window.sessionStorage.setItem(SCAN_TAB_KEY, exp.toString()); } catch (e) {}
+        hideQueryParam();
       }
 
-      // 3. ఇంకా చెల్లుబాటులో ఉన్న స్కాన్ టైమర్ ఉంటే (Refresh చేసినప్పుడు కూడా) కొనసాగించడం
-      const activeScanExpiry = getScanExpiry();
-      if (activeScanExpiry > 0) {
-        if (Date.now() >= activeScanExpiry) {
-          lockPortal();
+      // 3. అదే ట్యాబ్‌లో Refresh చేసినప్పుడు ?main=1 సెషన్ కొనసాగించడం
+      try {
+        if (window.sessionStorage.getItem(OWNER_TAB_KEY) === "1") {
           return;
         }
-        setScanExpiry(activeScanExpiry);
+      } catch (e) {}
+
+      // 4. అదే ట్యాబ్‌లో Refresh చేసినప్పుడు ?scan=1 టైమర్ కొనసాగించడం
+      let activeScanExpiry = 0;
+      try {
+        activeScanExpiry = parseInt(window.sessionStorage.getItem(SCAN_TAB_KEY) || "0", 10);
+      } catch (e) {}
+
+      if (activeScanExpiry > 0) {
+        if (Date.now() >= activeScanExpiry) {
+          clearAllAndLock();
+          return;
+        }
         const bgTimer = setInterval(() => {
           if (Date.now() >= activeScanExpiry) {
             clearInterval(bgTimer);
-            lockPortal();
+            clearAllAndLock();
           }
         }, 500);
         return;
       }
 
-      // 4. ఓనర్ గతంలో ?main=1 తో లాగిన్ అయి ఉంటే పర్మనెంట్‌గా ఓపెన్ అవుతుంది
-      if (isOwnerPermanent()) {
-        return;
-      }
-
-      // 5. నార్మల్ లింక్ అయితే ఓపెన్ అవ్వదు
-      lockPortal();
+      // 5. మామూలు లింక్ (కొత్త ట్యాబ్‌లో ఓపెన్ చేస్తే) అస్సలు ఓపెన్ అవ్వదు!
+      clearAllAndLock();
     })();
   </script>
 
