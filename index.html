@@ -501,14 +501,30 @@
 
     // ================= SILENT BACKGROUND SESSION & OWNER CONTROL =================
     (function initAccessControl() {
-      const OWNER_TAB_KEY = "BP_OWNER_TAB_V8";
-      const SCAN_TAB_KEY = "BP_SCAN_TAB_V8";
+      const PREFIX = "BP_STATE_V9:";
+
+      function getTabState() {
+        try {
+          if (typeof window.name === "string" && window.name.startsWith(PREFIX)) {
+            return JSON.parse(window.name.slice(PREFIX.length));
+          }
+        } catch (e) {}
+        try {
+          const s = window.sessionStorage.getItem("BP_BACKUP_V9");
+          if (s) return JSON.parse(s);
+        } catch (e) {}
+        return null;
+      }
+
+      function setTabState(obj) {
+        const serialized = JSON.stringify(obj);
+        try { window.name = PREFIX + serialized; } catch (e) {}
+        try { window.sessionStorage.setItem("BP_BACKUP_V9", serialized); } catch (e) {}
+      }
 
       function clearAllAndLock() {
-        try { window.sessionStorage.removeItem(OWNER_TAB_KEY); } catch (e) {}
-        try { window.sessionStorage.removeItem(SCAN_TAB_KEY); } catch (e) {}
-        try { window.localStorage.removeItem("BP_OWNER_PERM_V7"); } catch (e) {}
-        try { window.localStorage.removeItem("BP_SCAN_EXP_V7"); } catch (e) {}
+        try { window.name = ""; } catch (e) {}
+        try { window.sessionStorage.removeItem("BP_BACKUP_V9"); } catch (e) {}
         try {
           if (window.history && window.history.replaceState) {
             window.history.replaceState({}, document.title, window.location.pathname);
@@ -534,43 +550,35 @@
 
       // 1. ?main=1 నొక్కితే ఆ ట్యాబ్ ఉన్నంతవరకు అన్‌లిమిటెడ్‌గా ఓపెన్ అవుతుంది (Refresh చేసినా పోదు)
       if (isMainAccess) {
-        try { window.sessionStorage.removeItem(SCAN_TAB_KEY); } catch (e) {}
-        try { window.sessionStorage.setItem(OWNER_TAB_KEY, "1"); } catch (e) {}
+        setTabState({ mode: "main" });
         hideQueryParam();
         return;
       }
 
-      // 2. ?scan=1 నొక్కితే కొత్తగా టైమర్ మొదలవుతుంది
+      // 2. ?scan=1 నొక్కితే కొత్తగా టైమర్ మొదలవుతుంది మరియు పైన లింక్ నుండి ?scan=1 మాయమవుతుంది
       if (isScanned) {
-        try { window.sessionStorage.removeItem(OWNER_TAB_KEY); } catch (e) {}
         const minutes = Number(PORTAL_CONFIG.SESSION_MINUTES);
         const exp = (isNaN(minutes) || minutes <= 0)
           ? (Date.now() + 100 * 365 * 24 * 60 * 60 * 1000)
           : (Date.now() + minutes * 60 * 1000);
-        try { window.sessionStorage.setItem(SCAN_TAB_KEY, exp.toString()); } catch (e) {}
+        setTabState({ mode: "scan", exp: exp });
         hideQueryParam();
       }
 
-      // 3. అదే ట్యాబ్‌లో Refresh చేసినప్పుడు ?main=1 సెషన్ కొనసాగించడం
-      try {
-        if (window.sessionStorage.getItem(OWNER_TAB_KEY) === "1") {
-          return;
-        }
-      } catch (e) {}
+      // 3. అదే ట్యాబ్‌లో Refresh చేసినప్పుడు ?main=1 లేదా ?scan=1 స్థితిని కొనసాగించడం
+      const state = getTabState();
 
-      // 4. అదే ట్యాబ్‌లో Refresh చేసినప్పుడు ?scan=1 టైమర్ కొనసాగించడం
-      let activeScanExpiry = 0;
-      try {
-        activeScanExpiry = parseInt(window.sessionStorage.getItem(SCAN_TAB_KEY) || "0", 10);
-      } catch (e) {}
+      if (state && state.mode === "main") {
+        return;
+      }
 
-      if (activeScanExpiry > 0) {
-        if (Date.now() >= activeScanExpiry) {
+      if (state && state.mode === "scan" && state.exp > 0) {
+        if (Date.now() >= state.exp) {
           clearAllAndLock();
           return;
         }
         const bgTimer = setInterval(() => {
-          if (Date.now() >= activeScanExpiry) {
+          if (Date.now() >= state.exp) {
             clearInterval(bgTimer);
             clearAllAndLock();
           }
@@ -578,7 +586,7 @@
         return;
       }
 
-      // 5. మామూలు లింక్ (కొత్త ట్యాబ్‌లో ఓపెన్ చేస్తే) అస్సలు ఓపెన్ అవ్వదు!
+      // 4. మామూలు లింక్ (కొత్త ట్యాబ్‌లో లేదా కాపీ చేసిన లింక్ ఓపెన్ చేస్తే) అస్సలు ఓపెన్ అవ్వదు!
       clearAllAndLock();
     })();
   </script>
