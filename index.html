@@ -38,15 +38,15 @@
   .hide-scrollbar::-webkit-scrollbar { display: none; }
   .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   * { box-sizing: border-box; }
-</style>
-</head>
-<body class="min-h-screen flex flex-col bg-[#faf9f6] text-stone-900 overflow-x-hidden">
-
-  <!-- Toast Notification -->
-  <div id="toastBox" class="fixed bottom-20 sm:bottom-6 right-4 z-[200] pointer-events-none transform translate-y-24 opacity-0 transition-all duration-300">
-    <div class="bg-stone-900 text-white px-4 py-3 rounded-2xl shadow-xl border border-amber-500/40 flex items-center gap-3 text-sm font-medium">
-      <i class="fa-solid fa-circle-check text-amber-400"></i>
-      <span id="toastText">Notification</span>
+  <!-- 404 NOT FOUND / SESSION EXPIRED SCREEN -->
+  <div id="page-404" class="hidden min-h-screen flex flex-col items-center justify-center bg-white px-4 text-center">
+    <div class="max-w-md space-y-4">
+      <div class="w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mx-auto text-3xl">
+        <i class="fa-solid fa-qrcode"></i>
+      </div>
+      <h1 class="text-6xl font-black text-stone-900 tracking-tight">404</h1>
+      <h2 class="text-xl font-bold text-stone-800">Invalid Access / Session Expired</h2>
+      <p class="text-sm text-stone-500">Please scan a valid table QR code to access the menu and place your order.</p>
     </div>
   </div>
 
@@ -866,11 +866,7 @@
       [...globalOrders, ...localDevOrders].forEach(o => {
         if (o && o.orderId) mergedMap.set(o.orderId, o);
       });
-      customerDeviceOrders = Array.from(mergedMap.values());
-      localStorage.setItem("rb_cust_device_orders", JSON.stringify(customerDeviceOrders));
-    }
-
-    // STRICT URL ROUTING & REFRESH POSITION MEMORY
+    // STRICT URL ROUTING & ISOLATED REFRESH POSITION MEMORY
     function routeFromURL() {
       const searchStr = (window.location.search || "").toLowerCase();
       const params = new URLSearchParams(window.location.search);
@@ -879,24 +875,31 @@
       const isMainRoute = params.get("main") === "1" || params.get("main") === "true" || searchStr.includes("main=1") || searchStr.includes("main=true");
       const tableParam = params.get("table");
 
+      // Clear any previous conflicting mode when a fresh explicit URL parameter is passed
       if (isAdminRoute) {
-        sessionStorage.setItem("rb_active_session_mode", "admin");
-        localStorage.setItem("rb_active_session_mode", "admin");
+        sessionStorage.setItem("rb_route_mode", "admin");
+        sessionStorage.removeItem("rb_table_session");
         window.history.replaceState({}, document.title, window.location.pathname);
       } else if (isMainRoute) {
-        sessionStorage.setItem("rb_active_session_mode", "main");
-        localStorage.setItem("rb_active_session_mode", "main");
-        localStorage.removeItem("rb_table_session");
+        sessionStorage.setItem("rb_route_mode", "main");
+        sessionStorage.removeItem("rb_table_session");
+        sessionStorage.removeItem("rb_logged_role");
+        sessionStorage.setItem("rb_last_viewed_page", "home");
         window.history.replaceState({}, document.title, window.location.pathname);
       } else if (tableParam) {
         let expParam = parseInt(params.get("exp") || "0", 10);
         currentTableSession = { tableNum: tableParam, expiresAt: expParam };
         sessionStorage.setItem("rb_table_session", JSON.stringify(currentTableSession));
-        sessionStorage.setItem("rb_active_session_mode", "table");
-        localStorage.setItem("rb_table_session", JSON.stringify(currentTableSession));
-        localStorage.setItem("rb_active_session_mode", "table");
+        sessionStorage.setItem("rb_route_mode", "table");
+        sessionStorage.removeItem("rb_logged_role");
+        sessionStorage.setItem("rb_last_viewed_page", "menu");
         window.history.replaceState({}, document.title, window.location.pathname);
       }
+
+      // Clean up any old persistent localStorage keys that could cause unintended redirects
+      localStorage.removeItem("rb_active_session_mode");
+      localStorage.removeItem("rb_table_session");
+      localStorage.removeItem("rb_last_viewed_page");
 
       const header = document.getElementById("mainSiteHeader");
       const footer = document.getElementById("mainSiteFooter");
@@ -904,11 +907,11 @@
       const page404 = document.getElementById("page-404");
       const mainApp = document.getElementById("mainAppContainer");
 
-      const persistedMode = sessionStorage.getItem("rb_active_session_mode") || localStorage.getItem("rb_active_session_mode");
+      const activeMode = sessionStorage.getItem("rb_route_mode");
 
-      // 1. ADMIN LOGIN ROUTE (No Session Timeout)
-      if (persistedMode === "admin") {
-        if(page404) page404.classList.add("hidden");
+      // 1. ADMIN LOGIN ROUTE (?admin=1)
+      if (activeMode === "admin") {
+        if (page404) page404.classList.add("hidden");
         mainApp.classList.remove("hidden");
         if (header) header.classList.add("hidden");
         if (footer) footer.classList.add("hidden");
@@ -940,17 +943,15 @@
         return;
       }
 
-      // 2. TABLE QR SESSION ROUTE
-      if (persistedMode === "table") {
-        const savedTable = JSON.parse(sessionStorage.getItem("rb_table_session") || localStorage.getItem("rb_table_session") || "null");
+      // 2. TABLE QR SESSION ROUTE (?table=...)
+      if (activeMode === "table") {
+        const savedTable = JSON.parse(sessionStorage.getItem("rb_table_session") || "null");
         if (savedTable) currentTableSession = savedTable;
 
-        if (currentTableSession && currentTableSession.expiresAt > 0 && Date.now() > currentTableSession.expiresAt) {
-          sessionStorage.removeItem("rb_active_session_mode");
+        if (!currentTableSession || (currentTableSession.expiresAt > 0 && Date.now() > currentTableSession.expiresAt)) {
+          sessionStorage.removeItem("rb_route_mode");
           sessionStorage.removeItem("rb_table_session");
-          localStorage.removeItem("rb_active_session_mode");
-          localStorage.removeItem("rb_table_session");
-          if(page404) page404.classList.remove("hidden");
+          if (page404) page404.classList.remove("hidden");
           mainApp.classList.add("hidden");
           if (header) header.classList.add("hidden");
           if (footer) footer.classList.add("hidden");
@@ -958,7 +959,7 @@
           return;
         }
 
-        if(page404) page404.classList.add("hidden");
+        if (page404) page404.classList.add("hidden");
         mainApp.classList.remove("hidden");
         if (header) header.classList.remove("hidden");
         if (footer) footer.classList.remove("hidden");
@@ -970,24 +971,24 @@
           applyFixedTableNumber();
         }
 
-        const lastPage = sessionStorage.getItem("rb_last_viewed_page") || localStorage.getItem("rb_last_viewed_page") || "menu";
+        const lastPage = sessionStorage.getItem("rb_last_viewed_page") || "menu";
         showPage(lastPage);
         return;
       }
 
-      // 3. MAIN WEBSITE ROUTE (?main=1 - No Session Timeout)
-      if (persistedMode === "main") {
-        if(page404) page404.classList.add("hidden");
+      // 3. MAIN WEBSITE ROUTE (?main=1)
+      if (activeMode === "main") {
+        if (page404) page404.classList.add("hidden");
         mainApp.classList.remove("hidden");
         if (header) header.classList.remove("hidden");
         if (footer) footer.classList.remove("hidden");
-        const lastPage = sessionStorage.getItem("rb_last_viewed_page") || localStorage.getItem("rb_last_viewed_page") || "home";
+        const lastPage = sessionStorage.getItem("rb_last_viewed_page") || "home";
         showPage(lastPage);
         return;
       }
 
-      // 4. DEFAULT DIRECT OPEN -> 404 / SESSION EXPIRED
-      if(page404) page404.classList.remove("hidden");
+      // 4. DIRECT BARE LINK -> 404 ERROR
+      if (page404) page404.classList.remove("hidden");
       mainApp.classList.add("hidden");
       if (header) header.classList.add("hidden");
       if (footer) footer.classList.add("hidden");
@@ -1001,7 +1002,6 @@
 
       if (pageId !== "admin" && pageId !== "expired") {
         sessionStorage.setItem("rb_last_viewed_page", pageId);
-        localStorage.setItem("rb_last_viewed_page", pageId);
       }
 
       const whiteBar = document.getElementById("whiteNavBarContainer");
