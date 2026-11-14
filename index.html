@@ -38,6 +38,16 @@
   .hide-scrollbar::-webkit-scrollbar { display: none; }
   .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   * { box-sizing: border-box; }
+</style>
+</head>
+<body class="min-h-screen flex flex-col font-sans antialiased">
+
+  <!-- Toast Notification -->
+  <div id="toastBox" class="fixed bottom-6 right-6 z-50 bg-stone-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-amber-500/40 flex items-center gap-3 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
+    <i class="fa-solid fa-circle-check text-amber-400"></i>
+    <span id="toastText" class="text-xs font-bold">Notification</span>
+  </div>
+
   <!-- 404 NOT FOUND / SESSION EXPIRED SCREEN -->
   <div id="page-404" class="hidden min-h-screen flex flex-col items-center justify-center bg-white px-4 text-center">
     <div class="max-w-md space-y-4">
@@ -47,15 +57,6 @@
       <h1 class="text-6xl font-black text-stone-900 tracking-tight">404</h1>
       <h2 class="text-xl font-bold text-stone-800">Invalid Access / Session Expired</h2>
       <p class="text-sm text-stone-500">Please scan a valid table QR code to access the menu and place your order.</p>
-    </div>
-  </div>
-
-  <!-- 404 NOT FOUND / SESSION EXPIRED SCREEN (No URL examples shown) -->
-  <div id="page-404" class="hidden min-h-screen flex flex-col items-center justify-center bg-white px-4 text-center">
-    <div class="max-w-md space-y-4">
-      <h1 class="text-7xl font-black text-stone-900 tracking-tight">404</h1>
-      <h2 class="text-xl font-bold text-stone-700">Session Expired / Cannot Find This Website</h2>
-      <p class="text-sm text-stone-500">The requested URL requires authorized access or a valid table QR code.</p>
     </div>
   </div>
 
@@ -866,7 +867,11 @@
       [...globalOrders, ...localDevOrders].forEach(o => {
         if (o && o.orderId) mergedMap.set(o.orderId, o);
       });
-    // STRICT URL ROUTING & ISOLATED REFRESH POSITION MEMORY
+      customerDeviceOrders = Array.from(mergedMap.values());
+      localStorage.setItem("rb_cust_device_orders", JSON.stringify(customerDeviceOrders));
+    }
+
+    // STRICT URL ROUTING & PERSISTENT REFRESH POSITION MEMORY
     function routeFromURL() {
       const searchStr = (window.location.search || "").toLowerCase();
       const params = new URLSearchParams(window.location.search);
@@ -875,31 +880,26 @@
       const isMainRoute = params.get("main") === "1" || params.get("main") === "true" || searchStr.includes("main=1") || searchStr.includes("main=true");
       const tableParam = params.get("table");
 
-      // Clear any previous conflicting mode when a fresh explicit URL parameter is passed
+      // Set persistent mode when an explicit URL parameter is passed, then clean URL
       if (isAdminRoute) {
-        sessionStorage.setItem("rb_route_mode", "admin");
-        sessionStorage.removeItem("rb_table_session");
+        localStorage.setItem("rb_route_mode", "admin");
+        localStorage.removeItem("rb_table_session");
         window.history.replaceState({}, document.title, window.location.pathname);
       } else if (isMainRoute) {
-        sessionStorage.setItem("rb_route_mode", "main");
-        sessionStorage.removeItem("rb_table_session");
-        sessionStorage.removeItem("rb_logged_role");
-        sessionStorage.setItem("rb_last_viewed_page", "home");
+        localStorage.setItem("rb_route_mode", "main");
+        localStorage.removeItem("rb_table_session");
+        localStorage.removeItem("rb_logged_role");
+        localStorage.setItem("rb_last_viewed_page", "home");
         window.history.replaceState({}, document.title, window.location.pathname);
       } else if (tableParam) {
         let expParam = parseInt(params.get("exp") || "0", 10);
         currentTableSession = { tableNum: tableParam, expiresAt: expParam };
-        sessionStorage.setItem("rb_table_session", JSON.stringify(currentTableSession));
-        sessionStorage.setItem("rb_route_mode", "table");
-        sessionStorage.removeItem("rb_logged_role");
-        sessionStorage.setItem("rb_last_viewed_page", "menu");
+        localStorage.setItem("rb_table_session", JSON.stringify(currentTableSession));
+        localStorage.setItem("rb_route_mode", "table");
+        localStorage.removeItem("rb_logged_role");
+        localStorage.setItem("rb_last_viewed_page", "menu");
         window.history.replaceState({}, document.title, window.location.pathname);
       }
-
-      // Clean up any old persistent localStorage keys that could cause unintended redirects
-      localStorage.removeItem("rb_active_session_mode");
-      localStorage.removeItem("rb_table_session");
-      localStorage.removeItem("rb_last_viewed_page");
 
       const header = document.getElementById("mainSiteHeader");
       const footer = document.getElementById("mainSiteFooter");
@@ -907,7 +907,7 @@
       const page404 = document.getElementById("page-404");
       const mainApp = document.getElementById("mainAppContainer");
 
-      const activeMode = sessionStorage.getItem("rb_route_mode");
+      const activeMode = localStorage.getItem("rb_route_mode");
 
       // 1. ADMIN LOGIN ROUTE (?admin=1)
       if (activeMode === "admin") {
@@ -920,8 +920,8 @@
         document.querySelectorAll(".page-section").forEach(s => s.classList.add("hidden"));
         document.getElementById("page-admin").classList.remove("hidden");
 
-        const savedRole = sessionStorage.getItem("rb_logged_role");
-        const savedSub = sessionStorage.getItem("rb_admin_subpage");
+        const savedRole = localStorage.getItem("rb_logged_role");
+        const savedSub = localStorage.getItem("rb_admin_subpage");
         if (savedRole === "master") {
           loggedInRole = "master";
           document.getElementById("loginBox").classList.add("hidden");
@@ -945,12 +945,12 @@
 
       // 2. TABLE QR SESSION ROUTE (?table=...)
       if (activeMode === "table") {
-        const savedTable = JSON.parse(sessionStorage.getItem("rb_table_session") || "null");
+        const savedTable = JSON.parse(localStorage.getItem("rb_table_session") || "null");
         if (savedTable) currentTableSession = savedTable;
 
         if (!currentTableSession || (currentTableSession.expiresAt > 0 && Date.now() > currentTableSession.expiresAt)) {
-          sessionStorage.removeItem("rb_route_mode");
-          sessionStorage.removeItem("rb_table_session");
+          localStorage.removeItem("rb_route_mode");
+          localStorage.removeItem("rb_table_session");
           if (page404) page404.classList.remove("hidden");
           mainApp.classList.add("hidden");
           if (header) header.classList.add("hidden");
@@ -971,7 +971,7 @@
           applyFixedTableNumber();
         }
 
-        const lastPage = sessionStorage.getItem("rb_last_viewed_page") || "menu";
+        const lastPage = localStorage.getItem("rb_last_viewed_page") || "menu";
         showPage(lastPage);
         return;
       }
@@ -982,7 +982,7 @@
         mainApp.classList.remove("hidden");
         if (header) header.classList.remove("hidden");
         if (footer) footer.classList.remove("hidden");
-        const lastPage = sessionStorage.getItem("rb_last_viewed_page") || "home";
+        const lastPage = localStorage.getItem("rb_last_viewed_page") || "home";
         showPage(lastPage);
         return;
       }
@@ -1001,7 +1001,7 @@
       if (target) target.classList.remove("hidden");
 
       if (pageId !== "admin" && pageId !== "expired") {
-        sessionStorage.setItem("rb_last_viewed_page", pageId);
+        localStorage.setItem("rb_last_viewed_page", pageId);
       }
 
       const whiteBar = document.getElementById("whiteNavBarContainer");
@@ -1040,7 +1040,7 @@
 
       if (val === masterPass) {
         loggedInRole = 'master';
-        sessionStorage.setItem("rb_logged_role", "master");
+        localStorage.setItem("rb_logged_role", "master");
         document.getElementById("loginMsg").innerText = "";
         document.getElementById("passcodeInput").value = "";
         document.getElementById("loginBox").classList.add("hidden");
@@ -1050,7 +1050,7 @@
         showToast("Logged in as Master Owner!");
       } else if (val === adminPass) {
         loggedInRole = 'admin';
-        sessionStorage.setItem("rb_logged_role", "admin");
+        localStorage.setItem("rb_logged_role", "admin");
         document.getElementById("loginMsg").innerText = "";
         document.getElementById("passcodeInput").value = "";
         document.getElementById("loginBox").classList.add("hidden");
@@ -1066,8 +1066,8 @@
 
     function logout() {
       loggedInRole = null;
-      sessionStorage.removeItem("rb_logged_role");
-      sessionStorage.removeItem("rb_admin_subpage");
+      localStorage.removeItem("rb_logged_role");
+      localStorage.removeItem("rb_admin_subpage");
       document.getElementById("passcodeInput").value = "";
       document.getElementById("loginMsg").innerText = "";
       document.getElementById("masterBox").classList.add("hidden");
@@ -1078,14 +1078,14 @@
 
     function switchToMasterPanel() {
       loggedInRole = 'master';
-      sessionStorage.setItem("rb_logged_role", "master");
+      localStorage.setItem("rb_logged_role", "master");
       document.getElementById("adminBox").classList.add("hidden");
       document.getElementById("masterBox").classList.remove("hidden");
       switchMasterSubPage('qr');
     }
 
     function switchMasterSubPage(sub) {
-      sessionStorage.setItem("rb_admin_subpage", sub);
+      localStorage.setItem("rb_admin_subpage", sub);
       document.querySelectorAll(".master-sub-page").forEach(p => p.classList.add("hidden"));
       document.querySelectorAll(".master-sub-btn").forEach(b => {
         b.className = "master-sub-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-blue-900 cursor-pointer";
@@ -1114,7 +1114,7 @@
     }
 
     function switchAdminSubPage(sub) {
-      sessionStorage.setItem("rb_admin_subpage", sub);
+      localStorage.setItem("rb_admin_subpage", sub);
       document.querySelectorAll(".admin-sub-page").forEach(p => p.classList.add("hidden"));
       document.querySelectorAll(".admin-sub-btn").forEach(b => {
         b.className = "admin-sub-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-blue-900 cursor-pointer";
